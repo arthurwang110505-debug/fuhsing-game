@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { AdminMission, GameSession, GameSettings } from "@/types/game";
+import CampusMapSVG from "./CampusMapSVG";
 import {
   Archive,
   CheckCircle2,
@@ -61,6 +62,7 @@ export default function AdminConsole({
   const [formHint2, setFormHint2] = useState("");
   const [formUnlocked, setFormUnlocked] = useState(true);
   const [formAnswerJson, setFormAnswerJson] = useState("");
+  const lastFormMissionRef = useRef<AdminMission | null>(null);
 
   const loadAdminState = async () => {
     setLoading(true);
@@ -81,6 +83,8 @@ export default function AdminConsole({
   };
 
   useEffect(() => {
+    // This effect intentionally starts the authenticated data-fetch lifecycle on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAdminState();
   }, []);
 
@@ -88,6 +92,19 @@ export default function AdminConsole({
   useEffect(() => {
     const m = missions.find((item) => item.id === editingId);
     if (!m) return;
+    const previous = lastFormMissionRef.current;
+    if (previous?.id === m.id) {
+      const { mapX: _previousX, mapY: _previousY, ...previousContent } = previous;
+      const { mapX: _nextX, mapY: _nextY, ...nextContent } = m;
+      if (JSON.stringify(previousContent) === JSON.stringify(nextContent)) {
+        // A drag only changed marker coordinates; preserve unsaved editor fields.
+        setFormMapX(m.mapX);
+        setFormMapY(m.mapY);
+        lastFormMissionRef.current = m;
+        return;
+      }
+    }
+    // Keep the editable form synchronized when its selected record changes.
     setFormTitle(m.title);
     setFormSubtitle(m.subtitle);
     setFormLocationName(m.locationName);
@@ -99,6 +116,7 @@ export default function AdminConsole({
     setFormHint2(m.hint2);
     setFormUnlocked(m.defaultUnlocked);
     setFormAnswerJson(JSON.stringify(m.correctAnswer, null, 2));
+    lastFormMissionRef.current = m;
   }, [editingId, missions]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -158,6 +176,44 @@ export default function AdminConsole({
             ? `已切換校史館狀態為：${value ? "開放中" : "休館中（自動啟用替代檔案）"}`
             : `已切換全域解鎖測試模式為：${value ? "全部關卡開放" : "依正常進度解鎖"}`
         );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMissionPositionChange = async (
+    missionId: number,
+    x: number,
+    y: number,
+    committed: boolean
+  ) => {
+    setMissions((current) => current.map((mission) =>
+      mission.id === missionId ? { ...mission, mapX: x, mapY: y } : mission
+    ));
+    if (missionId === editingId) {
+      setFormMapX(x);
+      setFormMapY(y);
+    }
+    if (!committed) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/missions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "update-mission",
+          missionId,
+          patch: { mapX: x, mapY: y },
+        }),
+      });
+      if (res.ok) {
+        await onRefreshGameData();
+        notify(`Mission ${String(missionId).padStart(2, "0")} 地圖位置已儲存（X ${x}、Y ${y}）。`);
+      } else {
+        const data = await res.json();
+        notify(data.error || "地圖位置儲存失敗，請稍後再試。");
       }
     } finally {
       setLoading(false);
@@ -568,6 +624,21 @@ export default function AdminConsole({
                       <span className="font-mono">
                         X: {formMapX} / Y: {formMapY}
                       </span>
+                    </div>
+                    <div className="overflow-hidden rounded-xl border border-[#D9B978]/20">
+                      <CampusMapSVG
+                        missions={missions.map((mission) =>
+                          mission.id === editingId
+                            ? { ...mission, mapX: formMapX, mapY: formMapY }
+                            : mission
+                        )}
+                        completedMissions={[]}
+                        unlockedIds={missions.map((mission) => mission.id)}
+                        onSelectMission={(mission) => setEditingId(mission.id)}
+                        adminEditable
+                        selectedMissionId={editingId}
+                        onMissionPositionChange={handleMissionPositionChange}
+                      />
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="text-xs text-[#F3F1EA]/75">
