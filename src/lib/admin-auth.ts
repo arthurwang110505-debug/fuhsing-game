@@ -19,7 +19,9 @@ export function verifyAdminToken(token: string | undefined | null): boolean {
   const parts = token.split(":");
   if (parts.length !== 3) return false;
   const [role, ts, sig] = parts;
-  if (role !== "admin" || !ts || !sig) return false;
+  const issuedAt = Number(ts);
+  const maxAgeMs = 8 * 60 * 60 * 1000;
+  if (role !== "admin" || !Number.isSafeInteger(issuedAt) || issuedAt > Date.now() + 60_000 || Date.now() - issuedAt > maxAgeMs || !sig) return false;
   const payload = `${role}:${ts}`;
   const expectedSig = createHmac("sha256", getSecretKey())
     .update(payload)

@@ -35,6 +35,7 @@ interface PuzzlePlayfieldProps {
   solvedDetail?: SolvedMissionDetail;
   allSolvedDetails: Record<number, SolvedMissionDetail>;
   hintsRevealed: number;
+  revealedHints: Partial<Record<1 | 2, string>>;
   submitting: boolean;
   feedback: { type: "error" | "success"; message: string } | null;
   onStartPuzzle: () => void;
@@ -52,6 +53,7 @@ export default function PuzzlePlayfield({
   solvedDetail,
   allSolvedDetails,
   hintsRevealed,
+  revealedHints,
   submitting,
   feedback,
   onStartPuzzle,
@@ -325,6 +327,11 @@ export default function PuzzlePlayfield({
                     <img
                       src={opt.imageUrl}
                       alt={opt.caption}
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = "/images/asset-placeholder.svg";
+                        event.currentTarget.alt = "實景照片尚待校方提供；目前顯示非實景佔位圖";
+                      }}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
                     <button
@@ -984,10 +991,10 @@ export default function PuzzlePlayfield({
         </div>
 
         <div className="space-y-3">
-          {hintsRevealed >= 1 ? (
+          {revealedHints[1] ? (
             <div className="rounded-2xl border border-[#D9B978]/35 bg-[#101827] p-4 space-y-1">
               <p className="text-xs font-bold text-[#D9B978]">第一階段提示</p>
-              <p className="text-sm leading-relaxed text-[#F3F1EA]/90">{mission.hint1}</p>
+              <p className="text-sm leading-relaxed text-[#F3F1EA]/90">{revealedHints[1]}</p>
             </div>
           ) : (
             <button
@@ -996,14 +1003,14 @@ export default function PuzzlePlayfield({
               className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl border border-[#D9B978]/40 bg-[#101827] px-4 py-2.5 text-sm font-semibold text-[#D9B978] transition hover:bg-[#D9B978]/10"
             >
               <HelpCircle className="h-4 w-4" />
-              需要一點靈感嗎？開啟第一個提示（不扣分）
+              {hintsRevealed >= 1 ? "重新載入已開啟的第一階段提示" : "需要一點靈感嗎？開啟第一個提示（不扣分）"}
             </button>
           )}
 
-          {hintsRevealed >= 2 ? (
+          {revealedHints[2] ? (
             <div className="rounded-2xl border border-[#65C99A]/35 bg-[#101827] p-4 space-y-1">
               <p className="text-xs font-bold text-[#65C99A]">第二階段進階提示</p>
-              <p className="text-sm leading-relaxed text-[#F3F1EA]/90">{mission.hint2}</p>
+              <p className="text-sm leading-relaxed text-[#F3F1EA]/90">{revealedHints[2]}</p>
             </div>
           ) : (
             hintsRevealed >= 1 && (
@@ -1013,7 +1020,7 @@ export default function PuzzlePlayfield({
                 className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl border border-[#65C99A]/40 bg-[#101827] px-4 py-2.5 text-sm font-semibold text-[#65C99A] transition hover:bg-[#65C99A]/10"
               >
                 <HelpCircle className="h-4 w-4" />
-                再靠近一點：開啟第二個提示（不扣分）
+                開啟第二階段提示（不扣分）
               </button>
             )
           )}

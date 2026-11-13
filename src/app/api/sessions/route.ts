@@ -1,7 +1,9 @@
+import { randomInt } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { gameSessions } from "@/db/schema";
 import { ensureSeeded, getGameBootstrapData } from "@/lib/game-engine";
+import { isRequestAdmin } from "@/lib/admin-auth";
 import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -9,11 +11,13 @@ export const dynamic = "force-dynamic";
 function generateSessionCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let suffix = "";
-  for (let i = 0; i < 4; i++) {
-    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
+  for (let i = 0; i < 4; i++) suffix += chars[randomInt(chars.length)];
   return `FH${suffix}`;
 }
+
+const resumeAttempts = new Map<string, { count: number; resetAt: number }>();
+const RESUME_LIMIT = 12;
+const RESUME_WINDOW_MS = 15 * 60 * 1000;
 
 export async function POST(req: NextRequest) {
   try {
@@ -60,7 +64,7 @@ export async function POST(req: NextRequest) {
         mode,
         playerName: playerName.slice(0, 40),
         teamName: mode === "team" ? teamName.slice(0, 40) : null,
-        isAdminTestSession: Boolean(body.isAdminTestSession),
+        isAdminTestSession: Boolean(body.isAdminTestSession && await isRequestAdmin()),
       })
       .returning();
 
@@ -77,6 +81,17 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip")?.trim() || "unknown";
+    const now = Date.now();
+    for (const [key, value] of resumeAttempts) if (value.resetAt <= now) resumeAttempts.delete(key);
+    const attempt = resumeAttempts.get(ip);
+    if (attempt && attempt.count >= RESUME_LIMIT) {
+      return NextResponse.json({ error: "查詢次數過多，請稍候再試。" }, { status: 429, headers: { "Retry-After": String(Math.ceil((attempt.resetAt - now) / 1000)) } });
+    }
+    resumeAttempts.set(ip, {
+      count: attempt?.resetAt && attempt.resetAt > now ? attempt.count + 1 : 1,
+      resetAt: attempt?.resetAt && attempt.resetAt > now ? attempt.resetAt : now + RESUME_WINDOW_MS,
+    });
     await ensureSeeded();
     const code = (req.nextUrl.searchParams.get("code") || "").trim().toUpperCase();
     if (!code) {

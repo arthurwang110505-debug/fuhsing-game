@@ -167,8 +167,9 @@ export function sanitizeMissionForPlayer(m: MissionRow): PublicMission {
     puzzleType: m.puzzleType,
     promptText: m.promptText,
     puzzlePayload: m.puzzlePayload,
-    hint1: m.hint1,
-    hint2: m.hint2,
+    // Hint text is intentionally omitted from bootstrap and fetched on demand.
+    hint1: "",
+    hint2: "",
     sourceTitle: m.sourceTitle,
     sourceUrl: m.sourceUrl,
     fragmentName: m.fragmentName,
@@ -415,5 +416,5 @@ export async function getGameBootstrapData(sessionId?: string | null) {
 }
 
 export function getAdminPasscode(): string {
-  return process.env.ADMIN_PASSCODE || "FHSH1946";
+  return process.env.ADMIN_PASSCODE || "";
 }

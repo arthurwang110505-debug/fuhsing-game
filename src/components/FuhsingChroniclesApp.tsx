@@ -83,6 +83,10 @@ export default function FuhsingChroniclesApp() {
     type: "error" | "success";
     message: string;
   } | null>(null);
+  const [revealedHints, setRevealedHints] = useState<{
+    missionId: number;
+    hints: Partial<Record<1 | 2, string>>;
+  }>({ missionId: 0, hints: {} });
 
   // Timer state
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -255,27 +259,24 @@ export default function FuhsingChroniclesApp() {
 
   const handleOpenHint = async (stage: 1 | 2) => {
     if (!session || !activeMission) return;
-    const key = String(activeMission.id);
-    const current = session.hintsUsed?.[key] || 0;
-    const nextStage = Math.max(current, stage);
-
-    setSession((prev) =>
-      prev
-        ? {
-            ...prev,
-            hintsUsed: { ...(prev.hintsUsed || {}), [key]: nextStage },
-          }
-        : prev
+    const res = await fetch(
+      `/api/missions/${activeMission.id}/hint?sessionId=${encodeURIComponent(session.id)}&stage=${stage}`,
+      { cache: "no-store" }
     );
+    const data = await res.json();
+    if (!res.ok) {
+      setPuzzleFeedback({ type: "error", message: data.error || "目前無法開啟提示，請稍後再試。" });
+      return;
+    }
 
-    await fetch(`/api/sessions/${session.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        elapsedSeconds,
-        hintOpened: { missionId: activeMission.id, stage },
-      }),
-    });
+    setRevealedHints((prev) => ({
+      missionId: activeMission.id,
+      hints: {
+        ...(prev.missionId === activeMission.id ? prev.hints : {}),
+        [stage]: data.hint,
+      },
+    }));
+    setSession((prev) => prev ? { ...prev, hintsUsed: data.hintsUsed } : prev);
   };
 
   const handleSubmitMissionAnswer = async (answer: unknown) => {
@@ -525,7 +526,12 @@ export default function FuhsingChroniclesApp() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/fuhsing-campus-hero.png"
-                      alt="臺北市私立復興實驗高級中學 校園紅磚建築與鐘樓意象"
+                      alt="臺北市私立復興實驗高級中學校園實景照片"
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = "/images/asset-placeholder.svg";
+                        event.currentTarget.alt = "實景照片尚待校方提供；目前顯示非實景佔位圖";
+                      }}
                       className="h-full w-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#1B2A40] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#1B2A40]" />
@@ -606,7 +612,12 @@ export default function FuhsingChroniclesApp() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/images/time-invitation.png"
-                    alt="來自過去的時光邀請信封與黃銅羅盤"
+                    alt="時光邀請主視覺"
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = "/images/asset-placeholder.svg";
+                      event.currentTarget.alt = "主視覺素材待提供；目前顯示非實景佔位圖";
+                    }}
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1B2A40] via-[#1B2A40]/35 to-transparent" />
@@ -1087,6 +1098,7 @@ export default function FuhsingChroniclesApp() {
                   hintsRevealed={
                     session.hintsUsed?.[String(activeMission.id)] ?? 0
                   }
+                  revealedHints={revealedHints.missionId === activeMission.id ? revealedHints.hints : {}}
                   submitting={submittingAnswer}
                   feedback={puzzleFeedback}
                   onStartPuzzle={() => {

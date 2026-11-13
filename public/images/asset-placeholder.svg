@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">等待校方提供實景照片</title>
+  <desc id="desc">此為非實景的中性佔位圖，不代表復興實中的實際建築或校園環境。</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101827"/><stop offset="1" stop-color="#263650"/></linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <path d="M0 630Q250 590 470 650T900 630t300 10v160H0Z" fill="#1b2a40"/>
+  <g fill="none" stroke="#d9b978" stroke-width="7" opacity=".8"><rect x="470" y="230" width="260" height="250" rx="12"/><path d="M515 290h170M515 350h170M515 410h170M545 230v250M600 230v250M655 230v250"/><circle cx="600" cy="180" r="55"/><path d="M600 145v35l24 16"/></g>
+  <text x="600" y="570" fill="#f3f1ea" font-family="sans-serif" font-size="36" text-anchor="middle">實景照片待提供</text>
+  <text x="600" y="620" fill="#d9b978" font-family="sans-serif" font-size="20" text-anchor="middle">此圖為中性佔位圖，非校園實景</text>
+</svg>
