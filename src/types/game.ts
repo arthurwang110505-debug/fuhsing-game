@@ -14,6 +14,7 @@ export interface PublicMission {
   subtitle: string;
   locationName: string;
   locationNote: string;
+  sceneImage: string;
   mapX: number;
   mapY: number;
   storyBackground: string;
@@ -48,7 +49,8 @@ export interface GameSettings {
 
 export interface GameSession {
   id: string;
-  mode: "solo";
+  mode: "solo" | "team";
+  teamId?: string | null;
   playerName: string;
   startedAt: string;
   completedAt: string | null;
@@ -83,9 +85,45 @@ export type GameScreen =
   | "opening"
   | "intro"
   | "setup"
+  | "auth"
+  | "team-lobby"
   | "dashboard"
   | "map"
   | "mission-detail"
   | "puzzle"
   | "final-puzzle"
   | "ending";
+
+export type PlayMode = "local" | "cloud" | "team";
+
+export interface TeamInfo {
+  id: string;
+  name: string;
+  joinCode: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface TeamMemberInfo {
+  userId: string;
+  displayName: string;
+  role: "leader" | "member";
+  joinedAt: string;
+}
+
+export interface TeamMissionLogEntry {
+  missionId: number;
+  solvedBy: string;
+  solvedByName: string;
+  solvedAt: string;
+}
+
+export interface LeaderboardEntry {
+  teamId: string;
+  teamName: string;
+  score: number;
+  completedCount: number;
+  elapsedSeconds: number;
+  finalSolved: boolean;
+  memberCount: number;
+}

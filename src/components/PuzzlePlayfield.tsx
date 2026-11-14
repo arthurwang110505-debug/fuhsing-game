@@ -145,6 +145,22 @@ export default function PuzzlePlayfield({
         </button>
 
         <div className="archive-card rounded-3xl p-6 sm:p-8 space-y-6">
+          <div className="relative overflow-hidden rounded-2xl border border-[#103FA0]/15">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={mission.sceneImage}
+              alt={`${mission.locationName}場景示意圖`}
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = "/images/asset-placeholder.svg";
+                event.currentTarget.alt = "場景示意圖無法載入；目前顯示佔位圖";
+              }}
+              className="h-44 w-full object-cover sm:h-56"
+            />
+            <span className="absolute left-3 top-3 rounded-full bg-[#213155]/75 px-2.5 py-1 font-mono text-[10px] tracking-wide text-[#F9CF00]">
+              AI 場景示意圖・非復興實中實景
+            </span>
+          </div>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9CF00]/15 px-3 py-1 font-mono text-xs font-semibold text-[#103FA0]">

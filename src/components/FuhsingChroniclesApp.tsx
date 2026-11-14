@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type {
   FinalPuzzleMeta,
@@ -8,13 +8,16 @@ import type {
   GameSession,
   GameSettings,
   OfficialSourceItem,
+  PlayMode,
   PublicMission,
   SolvedMissionDetail,
+  TeamInfo,
 } from "@/types/game";
 import CampusMapSVG from "./CampusMapSVG";
 import PuzzlePlayfield from "./PuzzlePlayfield";
 import MissionCompleteModal, { FragmentSymbolIcon } from "./MissionCompleteModal";
 import { EndingScreenView, FinalPuzzleView } from "./FinalPuzzleAndEnding";
+import { AuthScreen, TeamLobbyScreen } from "./CloudPanels";
 import { FINAL_PUZZLE_DATA, OFFICIAL_SOURCES, SEED_MISSIONS } from "@/lib/seed-data";
 import {
   computeTotalScore,
@@ -26,11 +29,31 @@ import {
   gradeMissionAnswer,
 } from "@/lib/game-engine";
 import {
+  buildSolvedDetails,
+  mergeTeamProgress,
+  soloRowToHydrated,
+  teamRowToHydrated,
+} from "@/lib/cloud-types";
+import {
+  getCurrentUserId,
+  loadMyTeam,
+  loadSoloSave,
+  loadTeamMissionLog,
+  loadTeamSessionRow,
+  logTeamMission,
+  onAuthStateChange,
+  saveSolo,
+  saveTeamSession,
+  signOutCloud,
+  subscribeTeamEvents,
+} from "@/lib/cloud";
+import {
   ArrowRight,
   Award,
   BookOpen,
   CheckCircle2,
   Clock,
+  Cloud,
   Compass,
   ExternalLink,
   Flame,
@@ -40,10 +63,12 @@ import {
   ShieldCheck,
   Sparkles,
   User,
+  Users,
   X,
 } from "lucide-react";
 
 const STORAGE_SESSION_KEY = "fuhsing_chronicles_local_save_v2";
+const STORAGE_MODE_KEY = "fuhsing_chronicles_mode_v1";
 
 function formatDuration(totalSeconds: number): string {
   const mins = Math.floor(totalSeconds / 60);
@@ -80,6 +105,24 @@ export default function FuhsingChroniclesApp() {
   const [showSourcesModal, setShowSourcesModal] = useState(false);
   const [endingStory, setEndingStory] = useState<string[]>(FINAL_PUZZLE_DATA.endingStory);
 
+  // ---- cloud / team state ----
+  const [playMode, setPlayMode] = useState<PlayMode>("local");
+  const [pendingMode, setPendingMode] = useState<PlayMode>("cloud");
+  const [cloudUserId, setCloudUserId] = useState<string | null>(null);
+  const [cloudDisplayName, setCloudDisplayName] = useState("");
+  const [cloudTeam, setCloudTeam] = useState<TeamInfo | null>(null);
+  const [cloudNotice, setCloudNotice] = useState("");
+  const [resumeCloud, setResumeCloud] = useState<{ hasSave: boolean; team: TeamInfo | null } | null>(null);
+
+  const elapsedRef = useRef(elapsedSeconds);
+  const sessionRef = useRef(session);
+  useEffect(() => {
+    elapsedRef.current = elapsedSeconds;
+  }, [elapsedSeconds]);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
   useEffect(() => {
     if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/sw.js").catch(() => undefined);
@@ -114,7 +157,7 @@ export default function FuhsingChroniclesApp() {
   }, []);
 
   useEffect(() => {
-    if (!saveReady) return;
+    if (!saveReady || playMode !== "local") return;
     try {
       if (!session) {
         localStorage.removeItem(STORAGE_SESSION_KEY);
@@ -125,7 +168,80 @@ export default function FuhsingChroniclesApp() {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPuzzleFeedback({ type: "error", message: "此瀏覽器無法儲存本機進度，請確認儲存空間設定。" });
     }
-  }, [saveReady, session, solvedDetails, settings, elapsedSeconds]);
+  }, [saveReady, playMode, session, solvedDetails, settings, elapsedSeconds]);
+
+  // Remember the last play mode for this browser.
+  useEffect(() => {
+    if (!saveReady) return;
+    try {
+      localStorage.setItem(
+        STORAGE_MODE_KEY,
+        JSON.stringify({ mode: playMode, displayName: cloudDisplayName })
+      );
+    } catch { /* storage unavailable */ }
+  }, [saveReady, playMode, cloudDisplayName]);
+
+  // Cloud auth bootstrap (session persists in the browser via supabase-js).
+  useEffect(() => {
+    const unsubscribe = onAuthStateChange((userId) => {
+      setCloudUserId(userId);
+      if (!userId) setResumeCloud(null);
+    });
+    void getCurrentUserId().then((id) => setCloudUserId(id));
+    return unsubscribe;
+  }, []);
+
+  // Detect resumable cloud progress once signed in.
+  useEffect(() => {
+    if (!cloudUserId) return;
+    let alive = true;
+    void (async () => {
+      const [saveRes, teamRes] = await Promise.all([loadSoloSave(), loadMyTeam()]);
+      if (!alive) return;
+      setResumeCloud({
+        hasSave: Boolean(saveRes.ok && saveRes.data),
+        team: teamRes.ok ? teamRes.data : null,
+      });
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [cloudUserId]);
+
+  // Debounced cloud sync (solo or team).
+  useEffect(() => {
+    if (!saveReady || playMode === "local" || !session) return;
+    const timer = setTimeout(() => {
+      void (async () => {
+        const result =
+          playMode === "team" && cloudTeam
+            ? await saveTeamSession(cloudTeam.id, session, elapsedRef.current)
+            : playMode === "cloud"
+            ? await saveSolo(session, elapsedRef.current)
+            : { ok: true as const, data: null };
+        setCloudNotice(
+          result.ok ? "雲端同步中" : "雲端同步失敗，請檢查網路；連線恢復後會自動補上。"
+        );
+      })();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [saveReady, playMode, session, cloudTeam]);
+
+  // Live team sync: apply progress solved by teammates in real time.
+  useEffect(() => {
+    if (playMode !== "team" || !cloudTeam) return;
+    const unsubscribe = subscribeTeamEvents(cloudTeam.id, {
+      onSessionRow: (row) => {
+        const current = sessionRef.current;
+        if (!current) return;
+        const merged = mergeTeamProgress(current, row, elapsedRef.current);
+        setSession(merged.session);
+        setElapsedSeconds(merged.elapsedSeconds);
+        setSolvedDetails(buildSolvedDetails(merged.session.completedMissions));
+      },
+    });
+    return unsubscribe;
+  }, [playMode, cloudTeam]);
 
   const isPlayActive = Boolean(session) && !session?.finalSolved &&
     ["dashboard", "map", "mission-detail", "puzzle", "final-puzzle"].includes(screen);
@@ -147,22 +263,20 @@ export default function FuhsingChroniclesApp() {
   );
   const allEightDone = [1, 2, 3, 4, 5, 6, 7, 8].every((id) => completedSet.has(id));
 
-  const handleCreateSession = (event: React.FormEvent) => {
-    event.preventDefault();
-    const playerName = playerNameInput.trim();
-    if (!playerName) {
-      setSetupError("請填寫探索員名稱再出發！");
-      return;
-    }
+  const buildFreshSession = (
+    playerName: string,
+    mode: "solo" | "team",
+    teamId: string | null = null
+  ): GameSession => {
     const id = typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
       : `local-${Date.now()}`;
-    const createdAt = new Date().toISOString();
-    const newSession: GameSession = {
+    return {
       id,
-      mode: "solo",
+      mode,
+      teamId,
       playerName: playerName.slice(0, 40),
-      startedAt: createdAt,
+      startedAt: new Date().toISOString(),
       completedAt: null,
       elapsedSeconds: 0,
       score: 0,
@@ -172,11 +286,110 @@ export default function FuhsingChroniclesApp() {
       attemptsLog: {},
       finalSolved: false,
     };
+  };
+
+  const handleCreateSession = (event?: React.FormEvent) => {
+    event?.preventDefault();
+    const playerName = playerNameInput.trim();
+    if (!playerName) {
+      setSetupError("請填寫探索員名稱再出發！");
+      return;
+    }
+    setPlayMode("local");
+    setCloudTeam(null);
+    const newSession = buildFreshSession(playerName, "solo");
     setSession(newSession);
     setSolvedDetails({});
     setElapsedSeconds(0);
     setSetupError("");
     setScreen("dashboard");
+  };
+
+  const startCloudGame = async (playerName: string) => {
+    setPlayMode("cloud");
+    setCloudTeam(null);
+    setCloudDisplayName(playerName);
+    const result = await loadSoloSave();
+    if (result.ok && result.data) {
+      const hydrated = soloRowToHydrated(result.data, cloudUserId ?? "", "cloud-save");
+      setSession(hydrated.session);
+      setSolvedDetails(hydrated.solvedDetails);
+      setElapsedSeconds(hydrated.elapsedSeconds);
+    } else {
+      const newSession = buildFreshSession(playerName, "solo");
+      setSession(newSession);
+      setSolvedDetails({});
+      setElapsedSeconds(0);
+      void saveSolo(newSession, 0);
+    }
+    setSetupError("");
+    setScreen("dashboard");
+  };
+
+  const handleAuthed = (displayName: string) => {
+    setCloudDisplayName(displayName);
+    if (pendingMode === "team") {
+      setScreen("team-lobby");
+    } else {
+      void startCloudGame(displayName || playerNameInput.trim() || "探索員");
+    }
+  };
+
+  const handleChooseCloud = () => {
+    const name = playerNameInput.trim() || cloudDisplayName;
+    if (!name) {
+      setSetupError("請填寫探索員名稱再出發！");
+      return;
+    }
+    setPendingMode("cloud");
+    if (cloudUserId) {
+      void startCloudGame(name);
+    } else {
+      setScreen("auth");
+    }
+  };
+
+  const handleChooseTeam = () => {
+    const name = playerNameInput.trim() || cloudDisplayName;
+    if (!name) {
+      setSetupError("請填寫探索員名稱再出發！");
+      return;
+    }
+    setPendingMode("team");
+    setCloudDisplayName(name);
+    setScreen(cloudUserId ? "team-lobby" : "auth");
+  };
+
+  const handleEnterTeam = (team: TeamInfo) => {
+    setCloudTeam(team);
+    setPlayMode("team");
+    void (async () => {
+      const result = await loadTeamSessionRow(team.id);
+      if (result.ok && result.data) {
+        const hydrated = teamRowToHydrated(result.data, team, `team-${team.id}`);
+        setSession(hydrated.session);
+        setSolvedDetails(hydrated.solvedDetails);
+        setElapsedSeconds(hydrated.elapsedSeconds);
+      } else {
+        const newSession = buildFreshSession(team.name, "team", team.id);
+        setSession(newSession);
+        setSolvedDetails({});
+        setElapsedSeconds(0);
+        void saveTeamSession(team.id, newSession, 0);
+      }
+      setSetupError("");
+      setScreen("dashboard");
+    })();
+  };
+
+  const handleSignOutCloud = () => {
+    void signOutCloud();
+    setCloudUserId(null);
+    setCloudTeam(null);
+    setCloudDisplayName("");
+    setResumeCloud(null);
+    setPlayMode("local");
+    setScreen("setup");
   };
 
   const handleSelectMission = (mission: PublicMission) => {
@@ -231,6 +444,12 @@ export default function FuhsingChroniclesApp() {
     setSolvedDetails((previous) => ({ ...previous, [activeMission.id]: detail }));
     setJustSolvedModal({ mission: activeMission, detail });
     setSubmittingAnswer(false);
+    if (playMode === "cloud") {
+      void saveSolo(updatedSession, elapsedRef.current);
+    } else if (playMode === "team" && cloudTeam) {
+      void saveTeamSession(cloudTeam.id, updatedSession, elapsedRef.current);
+      void logTeamMission(cloudTeam.id, activeMission.id, cloudDisplayName || "隊友");
+    }
   };
 
   const handleSubmitFinalPuzzle = (order: string[]) => {
@@ -243,9 +462,20 @@ export default function FuhsingChroniclesApp() {
     const result = gradeFinalSeal(order);
     setPuzzleFeedback(result.isCorrect ? { type: "success", message: result.feedback } : { type: "error", message: result.feedback });
     if (result.isCorrect) {
-      setSession({ ...session, finalSolved: true, completedAt: session.completedAt ?? new Date().toISOString(), score: computeTotalScore(session.completedMissions, true) });
+      const finished: GameSession = {
+        ...session,
+        finalSolved: true,
+        completedAt: session.completedAt ?? new Date().toISOString(),
+        score: computeTotalScore(session.completedMissions, true),
+      };
+      setSession(finished);
       setEndingStory(FINAL_PUZZLE_DATA.endingStory);
       setScreen("ending");
+      if (playMode === "cloud") {
+        void saveSolo(finished, elapsedRef.current);
+      } else if (playMode === "team" && cloudTeam) {
+        void saveTeamSession(cloudTeam.id, finished, elapsedRef.current);
+      }
     }
     setSubmittingAnswer(false);
   };
@@ -299,6 +529,22 @@ export default function FuhsingChroniclesApp() {
                   碎片 {session.completedMissions.length}/8
                 </span>
               </div>
+            )}
+
+            {playMode === "team" && cloudTeam && (
+              <button
+                type="button"
+                onClick={() => setScreen("team-lobby")}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#E3B505] bg-[#F9CF00]/20 px-2.5 text-xs font-semibold text-[#103FA0] transition hover:border-[#E3B505]"
+              >
+                <Users className="h-3.5 w-3.5" />
+                <span className="max-w-[120px] truncate">隊伍「{cloudTeam.name}」</span>
+              </button>
+            )}
+            {playMode !== "local" && cloudNotice.includes("失敗") && (
+              <span className="inline-flex h-9 items-center rounded-xl border border-[#D21E14]/35 bg-[#D21E14]/8 px-2.5 text-xs text-[#B41810]">
+                {cloudNotice}
+              </span>
             )}
 
             <button
@@ -438,7 +684,7 @@ export default function FuhsingChroniclesApp() {
                     onError={(event) => {
                       event.currentTarget.onerror = null;
                       event.currentTarget.src = "/images/asset-placeholder.svg";
-                      event.currentTarget.alt = "主視覺素材待提供；目前顯示非實景佔位圖";
+                      event.currentTarget.alt = "主視覺素材無法載入；目前顯示非實景佔位圖";
                     }}
                     className="h-full w-full object-cover"
                   />
@@ -501,7 +747,7 @@ export default function FuhsingChroniclesApp() {
             </motion.section>
           )}
 
-          {/* SCREEN 03: LOCAL PLAYER SETUP */}
+          {/* SCREEN 03: PLAYER SETUP + MODE SELECT */}
           {screen === "setup" && (
             <motion.section
               key="setup"
@@ -513,41 +759,87 @@ export default function FuhsingChroniclesApp() {
               <div className="archive-card rounded-3xl p-6 sm:p-8 space-y-6">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#103FA0]">
-                    LOCAL EXPLORER PROFILE
+                    EXPLORER PROFILE & PLAY MODE
                   </p>
                   <h2 className="mt-1 font-serif text-2xl font-bold text-[#213155]">
-                    建立本機探索檔案
+                    建立探索檔案・選擇遊玩模式
                   </h2>
                   <p className="mt-1 text-xs leading-relaxed text-[#213155]/70">
-                    單人、單一裝置遊玩。進度只儲存在此瀏覽器，不需要帳號、雲端或資料庫；首次載入並快取後可離線繼續，清除瀏覽器資料會刪除存檔。
+                    可離線單機遊玩（本機存檔）、登入雲端跨裝置同步，或組隊共同解謎。離線模式不需要帳號，進度只存於此瀏覽器。
                   </p>
                 </div>
-                <form onSubmit={handleCreateSession} className="space-y-4">
-                  <label className="block text-xs font-semibold text-[#103FA0]">
-                    探索員名稱
-                    <input
-                      type="text"
-                      value={playerNameInput}
-                      onChange={(event) => setPlayerNameInput(event.target.value)}
-                      placeholder="例如：八年仁班 小光"
-                      maxLength={40}
-                      className="mt-1.5 w-full rounded-xl border border-[#103FA0]/30 bg-[#EAF0FA] px-4 py-3 text-sm text-[#213155] placeholder:text-[#213155]/35 focus:border-[#103FA0] focus:outline-none"
-                      required
-                    />
-                  </label>
-                  {setupError && (
-                    <p className="rounded-xl border border-[#D21E14]/35 bg-[#D21E14]/8 px-3.5 py-2 text-xs text-[#B41810]">
-                      {setupError}
-                    </p>
-                  )}
+
+                <label className="block text-xs font-semibold text-[#103FA0]">
+                  探索員名稱
+                  <input
+                    type="text"
+                    value={playerNameInput}
+                    onChange={(event) => setPlayerNameInput(event.target.value)}
+                    placeholder="例如：八年仁班 小光"
+                    maxLength={40}
+                    className="mt-1.5 w-full rounded-xl border border-[#103FA0]/30 bg-[#EAF0FA] px-4 py-3 text-sm text-[#213155] placeholder:text-[#213155]/35 focus:border-[#103FA0] focus:outline-none"
+                  />
+                </label>
+
+                {setupError && (
+                  <p className="rounded-xl border border-[#D21E14]/35 bg-[#D21E14]/8 px-3.5 py-2 text-xs text-[#B41810]">
+                    {setupError}
+                  </p>
+                )}
+
+                {cloudUserId && resumeCloud && (resumeCloud.hasSave || resumeCloud.team) && (
                   <button
-                    type="submit"
-                    className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-[#F9CF00] px-6 py-3.5 text-base font-bold text-[#213155] transition hover:bg-[#FFDD33]"
+                    type="button"
+                    onClick={() => {
+                      if (resumeCloud.team) {
+                        handleEnterTeam(resumeCloud.team);
+                      } else {
+                        void startCloudGame(playerNameInput.trim() || cloudDisplayName || "探索員");
+                      }
+                    }}
+                    className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-[#008250]/45 bg-[#008250]/10 px-6 py-3 text-sm font-bold text-[#008250] hover:bg-[#008250]/15"
                   >
-                    建立本機存檔・開始探索
-                    <ArrowRight className="h-5 w-5" />
+                    <Cloud className="h-4 w-4" />
+                    繼續雲端進度{resumeCloud.team ? `・隊伍「${resumeCloud.team.name}」` : "（跨裝置存檔）"}
                   </button>
-                </form>
+                )}
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <button
+                    type="button"
+                    onClick={() => handleCreateSession()}
+                    className="flex flex-col items-start gap-2 rounded-2xl border border-[#103FA0]/30 bg-[#EAF0FA] p-4 text-left transition hover:border-[#103FA0]"
+                  >
+                    <Compass className="h-5 w-5 text-[#103FA0]" />
+                    <span className="text-sm font-bold text-[#213155]">離線單機</span>
+                    <span className="text-xs leading-relaxed text-[#213155]/65">
+                      本機存檔・免帳號，可完全離線遊玩
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleChooseCloud}
+                    className="flex flex-col items-start gap-2 rounded-2xl border border-[#103FA0]/30 bg-[#EAF0FA] p-4 text-left transition hover:border-[#103FA0]"
+                  >
+                    <Cloud className="h-5 w-5 text-[#103FA0]" />
+                    <span className="text-sm font-bold text-[#213155]">雲端存檔</span>
+                    <span className="text-xs leading-relaxed text-[#213155]/65">
+                      登入後進度同步雲端，換裝置繼續玩
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleChooseTeam}
+                    className="flex flex-col items-start gap-2 rounded-2xl border border-[#E3B505] bg-[#F9CF00]/12 p-4 text-left transition hover:border-[#E3B505]"
+                  >
+                    <Users className="h-5 w-5 text-[#D21E14]" />
+                    <span className="text-sm font-bold text-[#213155]">組隊遊玩</span>
+                    <span className="text-xs leading-relaxed text-[#213155]/65">
+                      全隊共解八道任務，即時同步進度與排行
+                    </span>
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => setScreen("opening")}
@@ -557,6 +849,27 @@ export default function FuhsingChroniclesApp() {
                 </button>
               </div>
             </motion.section>
+          )}
+
+          {/* SCREEN 03B: CLOUD AUTH */}
+          {screen === "auth" && (
+            <AuthScreen
+              key="auth"
+              initialName={playerNameInput.trim() || cloudDisplayName}
+              onBack={() => setScreen("setup")}
+              onSignedIn={handleAuthed}
+            />
+          )}
+
+          {/* SCREEN 03C: TEAM LOBBY */}
+          {screen === "team-lobby" && (
+            <TeamLobbyScreen
+              key="team-lobby"
+              displayName={cloudDisplayName || playerNameInput.trim() || "探索員"}
+              onEnterTeam={handleEnterTeam}
+              onBack={() => setScreen("setup")}
+              onSignOut={handleSignOutCloud}
+            />
           )}
 
           {/* SCREEN 04: GAME DASHBOARD */}
@@ -754,16 +1067,24 @@ export default function FuhsingChroniclesApp() {
                             : "cursor-not-allowed border-[#213155]/10 bg-[#EAF0FA]/45 opacity-60"
                         }`}
                       >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-[#103FA0]">
-                              {m.code}
-                            </span>
+                        <div className="flex min-w-0 items-start gap-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={m.sceneImage}
+                            alt=""
+                            className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                          />
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs font-bold text-[#103FA0]">
+                                {m.code}
+                              </span>
                             <span className="font-serif text-base font-bold text-[#213155]">
                               {m.title}
                             </span>
                           </div>
-                          <p className="text-xs text-[#213155]/70">{m.locationName}</p>
+                            <p className="text-xs text-[#213155]/70">{m.locationName}</p>
+                          </div>
                         </div>
 
                         <span className="shrink-0 pt-0.5">

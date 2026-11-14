@@ -7,6 +7,7 @@ export interface SeedMission {
   subtitle: string;
   locationName: string;
   locationNote: string;
+  sceneImage: string;
   mapX: number;
   mapY: number;
   storyBackground: string;
@@ -117,6 +118,7 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "把校史、校址與建築資料串成證據鏈",
     locationName: "序章・官方資料交叉驗證",
     locationNote: "文字推理關卡；不要求前往特定校內位置。",
+    sceneImage: "/images/scene-m01-archive.jpg",
     mapX: 320,
     mapY: 970,
     storyBackground:
@@ -191,6 +193,7 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "晨鐘暮鼓中的四字箴言",
     locationName: "左側鐘樓（鐘塔）前廣場",
     locationNote: "示意定位：校園左側紅磚鐘塔地標區",
+    sceneImage: "/images/scene-m02-bell-tower.jpg",
     mapX: 130,
     mapY: 560,
     storyBackground:
@@ -254,6 +257,7 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "高低錯落的光影對話",
     locationName: "校舍建築群戶外連結步道",
     locationNote: "示意定位：主要教學樓群與特色館舍意象區",
+    sceneImage: "/images/scene-m03-buildings.jpg",
     mapX: 540,
     mapY: 440,
     storyBackground:
@@ -304,6 +308,7 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "從光復初春走向十三年一貫",
     locationName: "校史館外廊（含閉館數位檔案替代站）",
     locationNote: "示意定位：校史紀念與時間典藏展示區",
+    sceneImage: "/images/scene-m04-museum.jpg",
     mapX: 475,
     mapY: 270,
     storyBackground:
@@ -356,6 +361,7 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "從文字證據拆解六層象徵",
     locationName: "校徽檔案・文字推理",
     locationNote: "不需查看圖片或前往旗桿區；依據校方文字說明作答。",
+    sceneImage: "/images/scene-m05-emblem.jpg",
     mapX: 270,
     mapY: 385,
     storyBackground:
@@ -407,6 +413,7 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "東區林蔭中的生態呼吸",
     locationName: "小花園與中庭綠意步道",
     locationNote: "示意定位：校園中央植栽花園與生態景觀區",
+    sceneImage: "/images/scene-m06-garden.jpg",
     mapX: 405,
     mapY: 475,
     storyBackground:
@@ -465,6 +472,7 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "誰在守護每天的校園運轉？",
     locationName: "行政穿堂公告欄旁（遠距觀察）",
     locationNote: "示意定位：校園行政服務中軸穿堂意象區",
+    sceneImage: "/images/scene-m07-office.jpg",
     mapX: 465,
     mapY: 680,
     storyBackground:
@@ -518,6 +526,7 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "七枚線索匯流的核心檔案",
     locationName: "總結檔案・安靜安全處",
     locationNote: "可在安全處整理線索；地圖節點不代表實際集合位置。",
+    sceneImage: "/images/scene-m08-finale.jpg",
     mapX: 285,
     mapY: 650,
     storyBackground:
