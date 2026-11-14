@@ -6,7 +6,6 @@ import type {
   PublicMission,
   SolvedMissionDetail,
 } from "@/types/game";
-import InteractiveEmblem from "./InteractiveEmblem";
 import {
   AlertCircle,
   Archive,
@@ -23,8 +22,6 @@ import {
   MapPin,
   ShieldAlert,
   Sparkles,
-  ZoomIn,
-  X,
 } from "lucide-react";
 
 interface PuzzlePlayfieldProps {
@@ -64,11 +61,8 @@ export default function PuzzlePlayfield({
 }: PuzzlePlayfieldProps) {
   const payload = mission.puzzlePayload;
 
-  // 1. Image Recognition state (M01)
-  const [selectedImageId, setSelectedImageId] = useState<string>("");
-  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
-
-  // 2. Logic Wheel state (M02)
+  // Text-only evidence audit and logic puzzle answers.
+  const [evidenceAnswers, setEvidenceAnswers] = useState<Record<string, string>>({});
   const [logicAnswers, setLogicAnswers] = useState<Record<string, string>>({});
 
   // 3. Generic Matching state (M03, M05, M06 pairs, M07)
@@ -116,14 +110,13 @@ export default function PuzzlePlayfield({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     switch (mission.puzzleType) {
-      case "image-recognition":
-        onSubmitAnswer(selectedImageId);
+      case "evidence-grid":
+        onSubmitAnswer(evidenceAnswers);
         break;
       case "logic-choice":
         onSubmitAnswer(logicAnswers);
         break;
       case "map-matching":
-      case "symbol-decode":
       case "office-matching":
         onSubmitAnswer(pairAnswers);
         break;
@@ -292,78 +285,45 @@ export default function PuzzlePlayfield({
           </h2>
         </div>
 
-        {/* PUZZLE 1: IMAGE RECOGNITION */}
-        {mission.puzzleType === "image-recognition" && (
-          <div className="grid gap-4 sm:grid-cols-3">
+        {/* PUZZLE 1: TEXT-ONLY EVIDENCE AUDIT */}
+        {mission.puzzleType === "evidence-grid" && (
+          <div className="space-y-4">
             {(
-              (payload.options as {
+              (payload.questions as {
                 id: string;
                 label: string;
-                caption: string;
-                imageUrl: string;
+                prompt: string;
+                options: { id: string; text: string }[];
               }[]) ?? []
-            ).map((opt) => {
-              const active = selectedImageId === opt.id;
-              return (
-                <div
-                  key={opt.id}
-                  onClick={() => setSelectedImageId(opt.id)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSelectedImageId(opt.id);
-                    }
-                  }}
-                  className={`group cursor-pointer overflow-hidden rounded-2xl border transition ${
-                    active
-                      ? "border-[#D9B978] bg-[#101827] ring-2 ring-[#D9B978]/40"
-                      : "border-[#F3F1EA]/15 bg-[#101827]/70 hover:border-[#D9B978]/55"
-                  }`}
-                >
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0D1422]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={opt.imageUrl}
-                      alt={opt.caption}
-                      onError={(event) => {
-                        event.currentTarget.onerror = null;
-                        event.currentTarget.src = "/images/asset-placeholder.svg";
-                        event.currentTarget.alt = "實景照片尚待校方提供；目前顯示非實景佔位圖";
-                      }}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setZoomImageUrl(opt.imageUrl);
-                      }}
-                      aria-label={`放大檢視${opt.label}`}
-                      className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#101827]/80 text-[#F3F1EA] hover:bg-[#D9B978] hover:text-[#101827]"
-                    >
-                      <ZoomIn className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="p-3.5 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-bold text-[#D9B978]">
-                        {opt.label}
-                      </span>
-                      {active && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#D9B978] px-2 py-0.5 text-[11px] font-bold text-[#101827]">
-                          <Check className="h-3 w-3" /> 已選取
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs leading-relaxed text-[#F3F1EA]/85">
-                      {opt.caption}
-                    </p>
-                  </div>
+            ).map((question, index) => (
+              <fieldset key={question.id} className="archive-inset rounded-2xl p-4 space-y-3">
+                <legend className="px-1 text-sm font-bold text-[#D9B978]">
+                  {String(index + 1).padStart(2, "0")}・{question.label}
+                </legend>
+                <p className="text-sm leading-relaxed text-[#F3F1EA]">{question.prompt}</p>
+                <div className="space-y-2">
+                  {question.options.map((option) => {
+                    const selected = evidenceAnswers[question.id] === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => setEvidenceAnswers((previous) => ({ ...previous, [question.id]: option.id }))}
+                        className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-left text-sm leading-relaxed transition ${
+                          selected
+                            ? "border-[#D9B978] bg-[#D9B978]/15 text-[#F3F1EA] ring-1 ring-[#D9B978]/40"
+                            : "border-[#F3F1EA]/15 bg-[#101827] text-[#F3F1EA]/85 hover:border-[#D9B978]/60"
+                        }`}
+                      >
+                        <span className="mr-2 font-mono font-bold text-[#D9B978]">{option.id.slice(-1).toUpperCase()}.</span>
+                        {option.text}
+                      </button>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </fieldset>
+            ))}
           </div>
         )}
 
@@ -439,15 +399,8 @@ export default function PuzzlePlayfield({
 
         {/* PUZZLE 3 & 5 & 7: TAP-TO-PAIR MATCHING */}
         {(mission.puzzleType === "map-matching" ||
-          mission.puzzleType === "symbol-decode" ||
           mission.puzzleType === "office-matching") && (
           <div className="space-y-6">
-            {mission.puzzleType === "symbol-decode" && (
-              <InteractiveEmblem
-                activeSymbol={activeLeftId}
-                onSelectSymbol={(symId) => setActiveLeftId(symId)}
-              />
-            )}
 
             <div className="rounded-xl border border-[#D9B978]/20 bg-[#101827] px-3.5 py-2.5 text-xs text-[#D9B978]">
               操作方式：先點選左側（上方）一項題目卡片，再點選右側（下方）對應的選項即可完成配對！
@@ -465,10 +418,6 @@ export default function PuzzlePlayfield({
                       ? ((payload.leftItems as { id: string; label: string }[]) ?? []).map(
                           (i) => ({ id: i.id, title: i.label, sub: "" })
                         )
-                      : mission.puzzleType === "symbol-decode"
-                      ? ((payload.symbols as { id: string; label: string }[]) ?? []).map(
-                          (i) => ({ id: i.id, title: i.label, sub: "" })
-                        )
                       : ((
                           payload.scenarios as {
                             id: string;
@@ -484,10 +433,6 @@ export default function PuzzlePlayfield({
                   const rightList =
                     mission.puzzleType === "map-matching"
                       ? ((payload.rightItems as { id: string; text: string }[]) ?? []).map(
-                          (r) => ({ id: r.id, label: r.text })
-                        )
-                      : mission.puzzleType === "symbol-decode"
-                      ? ((payload.meanings as { id: string; text: string }[]) ?? []).map(
                           (r) => ({ id: r.id, label: r.text })
                         )
                       : ((
@@ -553,10 +498,6 @@ export default function PuzzlePlayfield({
                   const rightList =
                     mission.puzzleType === "map-matching"
                       ? ((payload.rightItems as { id: string; text: string }[]) ?? []).map(
-                          (r) => ({ id: r.id, title: r.text, note: "" })
-                        )
-                      : mission.puzzleType === "symbol-decode"
-                      ? ((payload.meanings as { id: string; text: string }[]) ?? []).map(
                           (r) => ({ id: r.id, title: r.text, note: "" })
                         )
                       : ((
@@ -655,7 +596,7 @@ export default function PuzzlePlayfield({
 
             <div className="space-y-2.5">
               <p className="text-xs text-[#F3F1EA]/75">
-                請使用右側的「上移 ↑ / 下移 ↓」按鈕，將四個歷史事件依時間「由最早（第 1 名）到最晚（第 4 名）」排好：
+                請使用右側的「上移 ↑ / 下移 ↓」按鈕，將所有歷史事件依時間由最早排到最晚：
               </p>
               {timelineOrder.map((itemId, index) => {
                 const itemsList =
@@ -1027,30 +968,6 @@ export default function PuzzlePlayfield({
         </div>
       </div>
 
-      {/* Image Zoom Lightbox Modal (for Mission 01) */}
-      {zoomImageUrl && (
-        <div
-          onClick={() => setZoomImageUrl(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
-        >
-          <div className="relative max-w-3xl w-full">
-            <button
-              type="button"
-              onClick={() => setZoomImageUrl(null)}
-              aria-label="關閉放大圖片"
-              className="absolute -top-11 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-[#1B2A40] text-[#F3F1EA] hover:bg-[#D9B978] hover:text-[#101827]"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={zoomImageUrl}
-              alt="放大檢視校園建築"
-              className="w-full rounded-2xl border border-[#D9B978]/35 object-contain max-h-[80vh]"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

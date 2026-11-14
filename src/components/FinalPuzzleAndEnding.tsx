@@ -124,7 +124,7 @@ export function FinalPuzzleView({
                       type="button"
                       disabled={idx === 0}
                       onClick={() => moveLine(idx, -1)}
-                      aria-label="上移一句"
+                      aria-label="上移一個片語"
                       className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#D9B978]/35 bg-[#101827] text-[#F3F1EA] hover:border-[#D9B978] disabled:opacity-30"
                     >
                       <ArrowUp className="h-4 w-4" />
@@ -133,7 +133,7 @@ export function FinalPuzzleView({
                       type="button"
                       disabled={idx === order.length - 1}
                       onClick={() => moveLine(idx, 1)}
-                      aria-label="下移一句"
+                      aria-label="下移一個片語"
                       className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#D9B978]/35 bg-[#101827] text-[#F3F1EA] hover:border-[#D9B978] disabled:opacity-30"
                     >
                       <ArrowDown className="h-4 w-4" />

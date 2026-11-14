@@ -47,18 +47,20 @@ export function gradeMissionAnswer(
   const expected = mission.correctAnswer;
 
   switch (mission.puzzleType) {
-    case "image-recognition": {
-      const sub = typeof submission === "string" ? submission.trim() : "";
-      const exp = typeof expected === "string" ? expected.trim() : "";
-      if (!sub) {
-        return { isCorrect: false, feedback: "請先點選一張你認為最符合復興實中的校園影像喔！" };
+    case "evidence-grid": {
+      const subObj = (submission && typeof submission === "object" ? submission : {}) as Record<string, string>;
+      const expObj = (expected && typeof expected === "object" ? expected : {}) as Record<string, string>;
+      const keys = Object.keys(expObj);
+      if (keys.some((key) => !subObj[key])) {
+        return { isCorrect: false, feedback: "證據鏈尚未完整，請完成每一項交叉驗證後再提交。" };
       }
-      if (sub === exp) {
-        return { isCorrect: true, feedback: "太棒了！你準確辨識出復興實中的校園風貌。" };
+      const matchCount = keys.filter((key) => subObj[key] === expObj[key]).length;
+      if (matchCount === keys.length) {
+        return { isCorrect: true, feedback: "交叉驗證通過：所有結論都能由資料支持。" };
       }
       return {
         isCorrect: false,
-        feedback: "差一點就找到了！再仔細對照紅磚校舍、左側鐘樓與戶外階梯這幾個特徵看看。",
+        feedback: `目前有 ${matchCount} / ${keys.length} 項結論符合來源；請重新檢查年份換算與證據邊界。`,
       };
     }
 
@@ -80,7 +82,6 @@ export function gradeMissionAnswer(
     }
 
     case "map-matching":
-    case "symbol-decode":
     case "office-matching": {
       const subObj = (submission && typeof submission === "object" ? submission : {}) as Record<string, string>;
       const expObj = (expected && typeof expected === "object" ? expected : {}) as Record<string, string>;
@@ -102,7 +103,7 @@ export function gradeMissionAnswer(
       const subArr = Array.isArray(submission) ? (submission as string[]) : [];
       const expArr = Array.isArray(expected) ? (expected as string[]) : [];
       if (subArr.length !== expArr.length) {
-        return { isCorrect: false, feedback: "請確認四個歷史里程碑都有排入時間軸中。" };
+        return { isCorrect: false, feedback: `請確認 ${expArr.length} 個歷史里程碑都已排入時間軸。` };
       }
       const exactMatch = expArr.every((val, idx) => subArr[idx] === val);
       if (exactMatch) {
