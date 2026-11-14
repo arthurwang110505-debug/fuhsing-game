@@ -1,9 +1,8 @@
 export type PuzzleType =
-  | "image-recognition"
+  | "evidence-grid"
   | "logic-choice"
   | "map-matching"
   | "timeline-sort"
-  | "symbol-decode"
   | "eco-matching"
   | "office-matching"
   | "final-synthesis";

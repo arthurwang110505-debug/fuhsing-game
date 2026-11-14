@@ -52,7 +52,6 @@ function formatDuration(totalSeconds: number): string {
 }
 
 export default function FuhsingChroniclesApp() {
-  const [booting, setBooting] = useState(true);
   const [saveReady, setSaveReady] = useState(false);
   const [screen, setScreen] = useState<GameScreen>("opening");
   const [missions] = useState<PublicMission[]>(() => getLocalMissions());
@@ -111,7 +110,6 @@ export default function FuhsingChroniclesApp() {
       try { localStorage.removeItem(STORAGE_SESSION_KEY); } catch { /* storage unavailable */ }
     } finally {
       setSaveReady(true);
-      setBooting(false);
     }
   }, []);
 
@@ -262,17 +260,6 @@ export default function FuhsingChroniclesApp() {
     setScreen("setup");
   };
 
-  if (booting) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#101827] px-6 text-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-[#D9B978]/30 border-t-[#D9B978]" />
-        <p className="mt-4 font-serif text-sm tracking-widest text-[#D9B978]">
-          正在開啟復興檔案室⋯
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#101827] text-[#F3F1EA] flex flex-col">
       {/* Persistent Top Navigation Header */}
@@ -360,12 +347,12 @@ export default function FuhsingChroniclesApp() {
                   <div className="relative min-h-[260px] md:col-span-6 md:min-h-[460px]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src="/images/fuhsing-campus-hero.png"
+                      src="/images/fuhsing-campus-hero.jpg"
                       alt="臺北市私立復興實驗高級中學校園實景照片"
                       onError={(event) => {
                         event.currentTarget.onerror = null;
                         event.currentTarget.src = "/images/asset-placeholder.svg";
-                        event.currentTarget.alt = "實景照片尚待校方提供；目前顯示非實景佔位圖";
+                        event.currentTarget.alt = "校園裝飾照片無法載入；目前顯示佔位圖";
                       }}
                       className="h-full w-full object-cover"
                     />
