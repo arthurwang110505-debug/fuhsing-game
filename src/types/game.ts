@@ -32,12 +32,6 @@ export interface PublicMission {
   defaultUnlocked: boolean;
 }
 
-export interface AdminMission extends PublicMission {
-  correctAnswer: unknown;
-  explanation: string;
-  clueSummary: string;
-}
-
 export interface SolvedMissionDetail {
   id: number;
   explanation: string;
@@ -50,17 +44,13 @@ export interface SolvedMissionDetail {
 }
 
 export interface GameSettings {
-  id: number;
   historyMuseumOpen: boolean;
-  forceUnlockAll: boolean;
 }
 
 export interface GameSession {
   id: string;
-  sessionCode: string;
-  mode: "solo" | "team";
+  mode: "solo";
   playerName: string;
-  teamName: string | null;
   startedAt: string;
   completedAt: string | null;
   elapsedSeconds: number;
@@ -70,7 +60,6 @@ export interface GameSession {
   hintsUsed: Record<string, number>;
   attemptsLog: Record<string, number>;
   finalSolved: boolean;
-  isAdminTestSession: boolean;
 }
 
 export interface OfficialSourceItem {

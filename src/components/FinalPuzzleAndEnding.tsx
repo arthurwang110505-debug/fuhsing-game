@@ -23,7 +23,6 @@ import {
   RotateCcw,
   Sparkles,
   Trophy,
-  Users,
   User,
 } from "lucide-react";
 
@@ -240,20 +239,14 @@ export function EndingScreenView({
         <div className="mt-7 grid gap-3 sm:grid-cols-3 text-left">
           <div className="archive-inset rounded-2xl p-4">
             <div className="flex items-center gap-2 text-xs text-[#F3F1EA]/65">
-              {session.mode === "team" ? (
-                <Users className="h-4 w-4 text-[#D9B978]" />
-              ) : (
-                <User className="h-4 w-4 text-[#D9B978]" />
-              )}
-              探索員檔案
+              <User className="h-4 w-4 text-[#D9B978]" />
+              本機探索檔案
             </div>
             <p className="mt-1.5 font-serif text-lg font-bold text-[#F3F1EA]">
-              {session.mode === "team" && session.teamName
-                ? `${session.teamName}（${session.playerName}）`
-                : session.playerName}
+              {session.playerName}
             </p>
-            <p className="mt-0.5 font-mono text-xs text-[#D9B978]">
-              檔案代碼：{session.sessionCode}
+            <p className="mt-0.5 text-xs text-[#D9B978]">
+              進度儲存於此瀏覽器
             </p>
           </div>
 

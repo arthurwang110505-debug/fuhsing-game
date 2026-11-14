@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  manifest: "/manifest.webmanifest",
   title: "復興檔案：時光的邀請｜FUHSING CHRONICLES",
   description:
     "臺北市私立復興實驗高級中學 校園探索解謎互動體驗 — 透過八道校園謎題與記憶碎片，探索復興的建築、校史、生態與火炬精神。",

@@ -19,9 +19,6 @@ interface CampusMapSVGProps {
   completedMissions: number[];
   unlockedIds: number[];
   onSelectMission: (mission: PublicMission) => void;
-  adminEditable?: boolean;
-  selectedMissionId?: number;
-  onMissionPositionChange?: (missionId: number, x: number, y: number, committed: boolean) => void | Promise<void>;
 }
 
 export default function CampusMapSVG({
@@ -29,41 +26,18 @@ export default function CampusMapSVG({
   completedMissions,
   unlockedIds,
   onSelectMission,
-  adminEditable = false,
-  selectedMissionId,
-  onMissionPositionChange,
 }: CampusMapSVGProps) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [localSelectedId, setLocalSelectedId] = useState<number>(
+  const [selectedId, setSelectedId] = useState<number>(
     missions.find((m) => !completedMissions.includes(m.id) && unlockedIds.includes(m.id))?.id ??
       missions[0]?.id ??
       1
   );
-  const selectedId = selectedMissionId ?? localSelectedId;
 
   const draggingRef = useRef(false);
   const pointerStartRef = useRef({ x: 0, y: 0, ox: 0, oy: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const draggingMissionRef = useRef<number | null>(null);
-  const dragPositionRef = useRef({ x: 0, y: 0 });
-
-  const getMissionPosition = (mission: PublicMission) => ({ x: mission.mapX, y: mission.mapY });
-
-  const getSvgCoordinates = (event: React.PointerEvent<SVGGElement>) => {
-    const svg = svgRef.current;
-    const matrix = svg?.getScreenCTM();
-    if (!svg || !matrix) return null;
-    const point = svg.createSVGPoint();
-    point.x = event.clientX;
-    point.y = event.clientY;
-    const mapped = point.matrixTransform(matrix.inverse());
-    return {
-      x: Math.round(Math.max(40, Math.min(960, mapped.x))),
-      y: Math.round(Math.max(40, Math.min(610, mapped.y))),
-    };
-  };
 
   const completedSet = new Set(completedMissions);
   const unlockedSet = new Set(unlockedIds);
@@ -122,16 +96,11 @@ export default function CampusMapSVG({
   };
 
   const focusOnMission = (mission: PublicMission) => {
-    setLocalSelectedId(mission.id);
+    setSelectedId(mission.id);
   };
 
   return (
     <div className="space-y-4">
-      {adminEditable && (
-        <p className="rounded-xl border border-[#D9B978]/30 bg-[#D9B978]/10 px-4 py-3 text-sm leading-relaxed text-[#F3F1EA]">
-          管理員定位模式：直接拖曳地圖上的任務標記，放開後即儲存；亦可使用下方 X／Y 滑桿微調。此底圖仍是示意圖，請先依已核實的校園圖資調整，不代表 GPS 或精確比例。
-        </p>
-      )}
       {/* Map Controls & Legend Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#D9B978]/20 bg-[#1B2A40] px-4 py-3">
         <div className="flex flex-wrap items-center gap-3 text-xs text-[#F3F1EA]/85">
@@ -197,7 +166,7 @@ export default function CampusMapSVG({
           });
         }}
         className={`relative w-full overflow-hidden rounded-3xl border border-[#D9B978]/30 bg-[#0D1422] shadow-[0_24px_60px_rgba(6,10,18,0.65)] ${
-          adminEditable || scale > 1 ? "cursor-grab active:cursor-grabbing touch-none" : "touch-pan-y"
+          scale > 1 ? "cursor-grab active:cursor-grabbing touch-none" : "touch-pan-y"
         }`}
       >
         <div
@@ -207,7 +176,6 @@ export default function CampusMapSVG({
           }}
         >
           <svg
-            ref={svgRef}
             viewBox="0 0 1000 650"
             className="block h-auto w-full select-none"
             role="img"
@@ -481,10 +449,7 @@ export default function CampusMapSVG({
 
             {/* Connecting Trail Lines Between Sequential Nodes */}
             <path
-              d={missions.map((m, idx) => {
-                const point = getMissionPosition(m);
-                return `${idx === 0 ? "M" : "L"}${point.x},${point.y}`;
-              }).join(" ")}
+              d={missions.map((mission, index) => `${index === 0 ? "M" : "L"}${mission.mapX},${mission.mapY}`).join(" ")}
               fill="none"
               stroke="#D9B978"
               strokeOpacity="0.22"
@@ -497,7 +462,6 @@ export default function CampusMapSVG({
               const isCompleted = completedSet.has(mission.id);
               const isUnlocked = unlockedSet.has(mission.id);
               const isSelected = selectedMission?.id === mission.id;
-              const position = getMissionPosition(mission);
 
               const pinFill = isCompleted
                 ? "#65C99A"
@@ -509,47 +473,16 @@ export default function CampusMapSVG({
                 <g
                   key={mission.id}
                   data-map-pin="true"
-                  transform={`translate(${position.x}, ${position.y})`}
+                  transform={`translate(${mission.mapX}, ${mission.mapY})`}
                   role="button"
                   tabIndex={0}
                   aria-label={`Mission ${mission.id}: ${mission.title}${isCompleted ? "，已完成" : isUnlocked ? "，可探索" : "，尚未解鎖"}`}
                   aria-pressed={isSelected}
-                  onPointerDown={(event) => {
-                    if (!adminEditable || event.button !== 0) return;
-                    event.preventDefault();
-                    event.stopPropagation();
-                    draggingMissionRef.current = mission.id;
-                    dragPositionRef.current = position;
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    focusOnMission(mission);
-                    onSelectMission(mission);
-                  }}
-                  onPointerMove={(event) => {
-                    if (draggingMissionRef.current !== mission.id || !adminEditable) return;
-                    const point = getSvgCoordinates(event);
-                    if (!point) return;
-                    dragPositionRef.current = point;
-                    onMissionPositionChange?.(mission.id, point.x, point.y, false);
-                  }}
-                  onPointerUp={(event) => {
-                    if (draggingMissionRef.current !== mission.id || !adminEditable) return;
-                    event.stopPropagation();
-                    draggingMissionRef.current = null;
-                    const { x, y } = dragPositionRef.current;
-                    void onMissionPositionChange?.(mission.id, x, y, true);
-                  }}
-                  onPointerCancel={() => {
-                    if (draggingMissionRef.current === mission.id) draggingMissionRef.current = null;
-                  }}
-                  onClick={() => {
-                    focusOnMission(mission);
-                    if (adminEditable) onSelectMission(mission);
-                  }}
+                  onClick={() => focusOnMission(mission)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
                       focusOnMission(mission);
-                      if (adminEditable) onSelectMission(mission);
                     }
                   }}
                   className="cursor-pointer outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F3F1EA]"
@@ -720,9 +653,7 @@ export default function CampusMapSVG({
                   : "cursor-not-allowed border border-slate-600/50 bg-slate-800/70 text-slate-400"
               }`}
             >
-              {adminEditable
-                ? "編輯此關卡資料"
-                : completedSet.has(selectedMission.id)
+              {completedSet.has(selectedMission.id)
                 ? "重溫關卡與解答"
                 : unlockedSet.has(selectedMission.id)
                 ? "開始探索此關卡"
