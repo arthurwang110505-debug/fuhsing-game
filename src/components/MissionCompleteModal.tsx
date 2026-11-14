@@ -57,7 +57,7 @@ export default function MissionCompleteModal({
   onGoFinalPuzzle,
 }: MissionCompleteModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#090E18]/85 p-4 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#213155]/45 p-4 backdrop-blur-sm overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -70,55 +70,55 @@ export default function MissionCompleteModal({
             initial={{ scale: 0.6, rotate: -14 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.12, type: "spring", stiffness: 210, damping: 16 }}
-            className="relative mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border border-[#65C99A]/50 bg-[#101827] text-[#D9B978] shadow-[0_0_32px_rgba(101,201,154,0.28)]"
+            className="relative mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border border-[#008250]/50 bg-[#EAF0FA] text-[#103FA0] shadow-[0_0_32px_rgba(0,130,80,0.28)]"
           >
             <FragmentSymbolIcon symbol={solvedDetail.fragmentSymbol} className="h-10 w-10" />
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#65C99A] text-[#101827]"
+              className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#008250] text-white"
             >
               <Sparkles className="h-4 w-4" />
             </motion.span>
           </motion.div>
 
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#65C99A]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#008250]">
             MISSION {mission.id.toString().padStart(2, "0")} COMPLETE・+10 分
           </p>
-          <h2 className="mt-1.5 font-serif text-2xl font-bold text-[#F3F1EA] sm:text-3xl">
+          <h2 className="mt-1.5 font-serif text-2xl font-bold text-[#213155] sm:text-3xl">
             獲得記憶碎片：『{solvedDetail.fragmentName}』
           </h2>
-          <p className="mt-2 max-w-md font-serif text-sm italic text-[#D9B978]">
+          <p className="mt-2 max-w-md font-serif text-sm italic text-[#103FA0]">
             「{solvedDetail.fragmentPoem}」
           </p>
         </div>
 
         {/* Clue Unlocked Banner */}
-        <div className="mt-5 rounded-2xl border border-[#D9B978]/35 bg-[#101827] p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#D9B978]">
+        <div className="mt-5 rounded-2xl border border-[#103FA0]/35 bg-[#EAF0FA] p-4">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#103FA0]">
             <Award className="h-4 w-4" />
             已收錄至檔案線索匣
           </div>
-          <p className="mt-1.5 text-sm text-[#F3F1EA]/90">{solvedDetail.clueSummary}</p>
+          <p className="mt-1.5 text-sm text-[#213155]/90">{solvedDetail.clueSummary}</p>
         </div>
 
         {/* Official Knowledge Explanation */}
-        <div className="mt-4 rounded-2xl border border-[#F3F1EA]/10 bg-[#131F31] p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#65C99A]">
+        <div className="mt-4 rounded-2xl border border-[#213155]/10 bg-[#EAF0FA] p-4">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#008250]">
             <BookOpen className="h-4 w-4" />
             校園記憶解析
           </div>
-          <p className="mt-2 text-sm leading-relaxed text-[#F3F1EA]/85">
+          <p className="mt-2 text-sm leading-relaxed text-[#213155]/85">
             {solvedDetail.explanation}
           </p>
-          <div className="mt-3 border-t border-[#F3F1EA]/10 pt-2.5 flex items-center justify-between gap-2 text-xs text-[#F3F1EA]/65">
+          <div className="mt-3 border-t border-[#213155]/10 pt-2.5 flex items-center justify-between gap-2 text-xs text-[#213155]/65">
             <span>資料來源：{solvedDetail.sourceTitle}</span>
             <a
               href={solvedDetail.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex shrink-0 items-center gap-1 text-[#D9B978] hover:underline"
+              className="inline-flex shrink-0 items-center gap-1 text-[#103FA0] hover:underline"
             >
               查看官方出處 <ExternalLink className="h-3 w-3" />
             </a>
@@ -131,7 +131,7 @@ export default function MissionCompleteModal({
             <button
               type="button"
               onClick={onGoFinalPuzzle}
-              className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#65C99A] px-5 py-3 text-sm font-bold text-[#101827] transition hover:bg-[#7AD6AA] shadow-[0_10px_28px_rgba(101,201,154,0.28)]"
+              className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#008250] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#006B41] shadow-[0_10px_28px_rgba(0,130,80,0.28)]"
             >
               <Sparkles className="h-4 w-4" />
               集齊八枚碎片！前往最終謎題
@@ -140,7 +140,7 @@ export default function MissionCompleteModal({
             <button
               type="button"
               onClick={onContinueMap}
-              className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#D9B978] px-5 py-3 text-sm font-bold text-[#101827] transition hover:bg-[#E4C98F]"
+              className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#F9CF00] px-5 py-3 text-sm font-bold text-[#213155] transition hover:bg-[#FFDD33]"
             >
               返回校園互動地圖繼續探索
             </button>
@@ -148,7 +148,7 @@ export default function MissionCompleteModal({
           <button
             type="button"
             onClick={onContinueDashboard}
-            className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-[#D9B978]/35 bg-[#101827] px-5 py-3 text-sm font-medium text-[#F3F1EA] transition hover:border-[#D9B978]"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-[#103FA0]/35 bg-[#EAF0FA] px-5 py-3 text-sm font-medium text-[#213155] transition hover:border-[#103FA0]"
           >
             查看檔案總覽
           </button>
