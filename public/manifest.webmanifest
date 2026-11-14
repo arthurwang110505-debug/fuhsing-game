@@ -4,8 +4,8 @@
   "description": "單人單機校園探索解謎遊戲",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#101827",
-  "theme_color": "#101827",
+  "background_color": "#F2F6FD",
+  "theme_color": "#F2F6FD",
   "lang": "zh-Hant",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }

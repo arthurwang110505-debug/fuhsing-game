@@ -261,23 +261,23 @@ export default function FuhsingChroniclesApp() {
   };
 
   return (
-    <div className="min-h-screen bg-[#101827] text-[#F3F1EA] flex flex-col">
+    <div className="min-h-screen bg-[#F2F6FD] text-[#213155] flex flex-col">
       {/* Persistent Top Navigation Header */}
-      <header className="sticky top-0 z-30 border-b border-[#D9B978]/20 bg-[#101827]/95 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-[#103FA0]/20 bg-white/92 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
           <button
             type="button"
             onClick={() => setScreen(session ? "dashboard" : "opening")}
             className="flex items-center gap-2.5 text-left"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#D9B978]/45 bg-[#1B2A40] text-[#D9B978]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#E3B505] bg-[#F9CF00] text-[#D21E14]">
               <Flame className="h-4 w-4" />
             </div>
             <div>
-              <p className="font-serif text-sm font-bold tracking-wide text-[#F3F1EA] sm:text-base">
+              <p className="font-serif text-sm font-bold tracking-wide text-[#213155] sm:text-base">
                 復興檔案：時光的邀請
               </p>
-              <p className="hidden text-[10px] tracking-[0.18em] text-[#D9B978] sm:block">
+              <p className="hidden text-[10px] tracking-[0.18em] text-[#103FA0] sm:block">
                 TAIPEI FUHSING PRIVATE SCHOOL
               </p>
             </div>
@@ -285,17 +285,17 @@ export default function FuhsingChroniclesApp() {
 
           <div className="flex items-center gap-2">
             {session && (
-              <div className="hidden items-center gap-3 rounded-xl border border-[#D9B978]/25 bg-[#1B2A40] px-3 py-1.5 text-xs md:flex">
-                <span className="inline-flex items-center gap-1 text-[#D9B978]">
+              <div className="hidden items-center gap-3 rounded-xl border border-[#103FA0]/25 bg-[#EAF0FA] px-3 py-1.5 text-xs md:flex">
+                <span className="inline-flex items-center gap-1 text-[#103FA0]">
                   <Clock className="h-3.5 w-3.5" />
                   <span className="font-mono">{formatDuration(elapsedSeconds)}</span>
                 </span>
-                <span className="h-3 w-px bg-[#F3F1EA]/20" />
-                <span className="font-mono font-semibold text-[#65C99A]">
+                <span className="h-3 w-px bg-[#213155]/15" />
+                <span className="font-mono font-semibold text-[#008250]">
                   {session.score} / 100 分
                 </span>
-                <span className="h-3 w-px bg-[#F3F1EA]/20" />
-                <span className="text-[#F3F1EA]/85">
+                <span className="h-3 w-px bg-[#213155]/15" />
+                <span className="text-[#213155]/85">
                   碎片 {session.completedMissions.length}/8
                 </span>
               </div>
@@ -304,7 +304,7 @@ export default function FuhsingChroniclesApp() {
             <button
               type="button"
               onClick={() => setShowSourcesModal(true)}
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#F3F1EA]/15 bg-[#1B2A40] px-2.5 text-xs text-[#F3F1EA]/85 transition hover:border-[#D9B978] hover:text-[#D9B978]"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#213155]/15 bg-[#EAF0FA] px-2.5 text-xs text-[#213155]/85 transition hover:border-[#103FA0] hover:text-[#103FA0]"
             >
               <BookOpen className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">資料來源與安全</span>
@@ -315,14 +315,14 @@ export default function FuhsingChroniclesApp() {
 
         {/* Mobile Secondary Status Strip during active play */}
         {session && (
-          <div className="flex items-center justify-between border-t border-[#D9B978]/10 bg-[#142033] px-4 py-2 text-xs md:hidden">
-            <span className="font-medium text-[#F3F1EA]/85 truncate max-w-[140px]">
+          <div className="flex items-center justify-between border-t border-[#103FA0]/10 bg-[#EAF0FA] px-4 py-2 text-xs md:hidden">
+            <span className="font-medium text-[#213155]/85 truncate max-w-[140px]">
               {session.playerName}
             </span>
             <div className="flex items-center gap-3 font-mono">
-              <span className="text-[#D9B978]">{formatDuration(elapsedSeconds)}</span>
-              <span className="text-[#65C99A]">{session.score}分</span>
-              <span className="text-[#F3F1EA]">碎片 {session.completedMissions.length}/8</span>
+              <span className="text-[#103FA0]">{formatDuration(elapsedSeconds)}</span>
+              <span className="text-[#008250]">{session.score}分</span>
+              <span className="text-[#213155]">碎片 {session.completedMissions.length}/8</span>
             </div>
           </div>
         )}
@@ -356,8 +356,8 @@ export default function FuhsingChroniclesApp() {
                       }}
                       className="h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1B2A40] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#1B2A40]" />
-                    <div className="absolute left-4 top-4 rounded-full border border-[#D9B978]/40 bg-[#101827]/85 px-3 py-1 font-mono text-[11px] text-[#D9B978]">
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-white" />
+                    <div className="absolute left-4 top-4 rounded-full border border-[#103FA0]/40 bg-[#213155]/85 px-3 py-1 font-mono text-[11px] text-[#F9CF00]">
                       建議探索時間：50 分鐘
                     </div>
                   </div>
@@ -365,30 +365,30 @@ export default function FuhsingChroniclesApp() {
                   {/* Right Cinematic Typography */}
                   <div className="flex flex-col justify-center p-6 sm:p-10 md:col-span-6 space-y-6">
                     <div className="space-y-3">
-                      <p className="font-display text-xs uppercase tracking-[0.26em] text-[#D9B978]">
+                      <p className="font-display text-xs uppercase tracking-[0.26em] text-[#103FA0]">
                         FUHSING CHRONICLES : THE INVITATION THROUGH TIME
                       </p>
-                      <h1 className="font-serif text-3xl font-bold leading-tight text-[#F3F1EA] sm:text-4xl">
+                      <h1 className="font-serif text-3xl font-bold leading-tight text-[#213155] sm:text-4xl">
                         復興檔案
-                        <span className="mt-1 block text-[#D9B978]">時光的邀請</span>
+                        <span className="mt-1 block text-[#D21E14]">時光的邀請</span>
                       </h1>
-                      <p className="text-sm leading-relaxed text-[#F3F1EA]/80">
+                      <p className="text-sm leading-relaxed text-[#213155]/80">
                         獻給臺北市私立復興實驗高級中學探索員的一場校園解謎旅程。透過八個實境推理任務，找回散落在紅磚校舍、鐘樓與綠意中庭裡的校園記憶。
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 rounded-2xl border border-[#D9B978]/20 bg-[#101827] p-3 text-center">
+                    <div className="grid grid-cols-3 gap-2 rounded-2xl border border-[#103FA0]/20 bg-[#EAF0FA] p-3 text-center">
                       <div>
-                        <p className="font-mono text-lg font-bold text-[#D9B978]">08</p>
-                        <p className="text-[11px] text-[#F3F1EA]/70">校園探索關卡</p>
+                        <p className="font-mono text-lg font-bold text-[#103FA0]">08</p>
+                        <p className="text-[11px] text-[#213155]/70">校園探索關卡</p>
                       </div>
-                      <div className="border-x border-[#F3F1EA]/10">
-                        <p className="font-mono text-lg font-bold text-[#65C99A]">100</p>
-                        <p className="text-[11px] text-[#F3F1EA]/70">滿分積分</p>
+                      <div className="border-x border-[#213155]/10">
+                        <p className="font-mono text-lg font-bold text-[#008250]">100</p>
+                        <p className="text-[11px] text-[#213155]/70">滿分積分</p>
                       </div>
                       <div>
-                        <p className="font-mono text-lg font-bold text-[#F3F1EA]">50m</p>
-                        <p className="text-[11px] text-[#F3F1EA]/70">無壓力體驗</p>
+                        <p className="font-mono text-lg font-bold text-[#213155]">50m</p>
+                        <p className="text-[11px] text-[#213155]/70">無壓力體驗</p>
                       </div>
                     </div>
 
@@ -396,7 +396,7 @@ export default function FuhsingChroniclesApp() {
                       <button
                         type="button"
                         onClick={() => setScreen("intro")}
-                        className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#D9B978] px-6 py-3.5 text-base font-bold text-[#101827] transition hover:bg-[#E4C98F] shadow-[0_12px_32px_rgba(217,185,120,0.3)]"
+                        className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#F9CF00] px-6 py-3.5 text-base font-bold text-[#213155] transition hover:bg-[#FFDD33] shadow-[0_12px_32px_rgba(249,207,0,0.3)]"
                       >
                         啟封時光邀請函
                         <ArrowRight className="h-5 w-5" />
@@ -408,7 +408,7 @@ export default function FuhsingChroniclesApp() {
                           onClick={() =>
                             setScreen(session.finalSolved ? "ending" : "dashboard")
                           }
-                          className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl border border-[#65C99A]/45 bg-[#101827] px-5 py-2.5 text-sm font-semibold text-[#65C99A] transition hover:bg-[#65C99A]/10"
+                          className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl border border-[#008250]/45 bg-[#EAF0FA] px-5 py-2.5 text-sm font-semibold text-[#008250] transition hover:bg-[#008250]/10"
                         >
                           繼續此裝置上的探索進度
                         </button>
@@ -442,36 +442,36 @@ export default function FuhsingChroniclesApp() {
                     }}
                     className="h-full w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1B2A40] via-[#1B2A40]/35 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#213155] via-[#213155]/45 to-transparent" />
                   <div className="absolute bottom-4 left-6 right-6">
-                    <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#D9B978]">
+                    <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#F9CF00]">
                       PROLOGUE・故事序章
                     </p>
-                    <h2 className="mt-1 font-serif text-2xl font-bold text-[#F3F1EA] sm:text-3xl">
+                    <h2 className="mt-1 font-serif text-2xl font-bold text-white sm:text-3xl">
                       一封來自過去的信
                     </h2>
                   </div>
                 </div>
 
                 <div className="p-6 sm:p-8 space-y-5">
-                  <div className="space-y-3.5 text-base leading-relaxed text-[#F3F1EA]/90">
+                  <div className="space-y-3.5 text-base leading-relaxed text-[#213155]/90">
                     <p>
                       某一天，復興實中的檔案室裡出現了一封蓋著梅花與火炬蠟印的舊信封。信紙上工整地記錄著這座校園從民國三十五年起步至今的故事，以及八個散落在校園各個角落、等待被重新看見的秘密。
                     </p>
                     <p>
                       你將以「校園探索員」的身份接下這份特別的委託：從校門口出發，透過觀察建築、推敲校史、解讀校徽、認識綠色生態與校園幕後團隊，逐一找回
-                      <span className="font-semibold text-[#D9B978]"> 八枚記憶碎片 </span>
+                      <span className="font-semibold text-[#103FA0]"> 八枚記憶碎片 </span>
                       ，並在最後解開時光的最終謎題。
                     </p>
                   </div>
 
                   {/* Safety Pledge */}
-                  <div className="rounded-2xl border border-[#65C99A]/35 bg-[#101827] p-4 space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-bold text-[#65C99A]">
+                  <div className="rounded-2xl border border-[#008250]/35 bg-[#EAF0FA] p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-bold text-[#008250]">
                       <ShieldCheck className="h-5 w-5" />
                       校園探索員安全與禮儀約定
                     </div>
-                    <ul className="grid gap-1.5 text-xs text-[#F3F1EA]/80 sm:grid-cols-2">
+                    <ul className="grid gap-1.5 text-xs text-[#213155]/80 sm:grid-cols-2">
                       <li>• 全程安靜探索，不奔跑、不攀爬、不跳躍</li>
                       <li>• 不進入正在上課的教室與行政管制區域</li>
                       <li>• 不打擾師長辦公，亦不拍攝其他同學</li>
@@ -483,14 +483,14 @@ export default function FuhsingChroniclesApp() {
                     <button
                       type="button"
                       onClick={() => setScreen("opening")}
-                      className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-[#F3F1EA]/20 bg-[#101827] px-6 py-3 text-sm font-medium text-[#F3F1EA]/85 hover:border-[#D9B978]"
+                      className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-[#213155]/20 bg-[#EAF0FA] px-6 py-3 text-sm font-medium text-[#213155]/85 hover:border-[#103FA0]"
                     >
                       返回封面
                     </button>
                     <button
                       type="button"
                       onClick={() => setScreen("setup")}
-                      className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-2xl bg-[#D9B978] px-6 py-3 text-base font-bold text-[#101827] transition hover:bg-[#E4C98F]"
+                      className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-2xl bg-[#F9CF00] px-6 py-3 text-base font-bold text-[#213155] transition hover:bg-[#FFDD33]"
                     >
                       登錄探索員檔案並出發
                       <ArrowRight className="h-5 w-5" />
@@ -512,18 +512,18 @@ export default function FuhsingChroniclesApp() {
             >
               <div className="archive-card rounded-3xl p-6 sm:p-8 space-y-6">
                 <div>
-                  <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#D9B978]">
+                  <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#103FA0]">
                     LOCAL EXPLORER PROFILE
                   </p>
-                  <h2 className="mt-1 font-serif text-2xl font-bold text-[#F3F1EA]">
+                  <h2 className="mt-1 font-serif text-2xl font-bold text-[#213155]">
                     建立本機探索檔案
                   </h2>
-                  <p className="mt-1 text-xs leading-relaxed text-[#F3F1EA]/70">
+                  <p className="mt-1 text-xs leading-relaxed text-[#213155]/70">
                     單人、單一裝置遊玩。進度只儲存在此瀏覽器，不需要帳號、雲端或資料庫；首次載入並快取後可離線繼續，清除瀏覽器資料會刪除存檔。
                   </p>
                 </div>
                 <form onSubmit={handleCreateSession} className="space-y-4">
-                  <label className="block text-xs font-semibold text-[#D9B978]">
+                  <label className="block text-xs font-semibold text-[#103FA0]">
                     探索員名稱
                     <input
                       type="text"
@@ -531,18 +531,18 @@ export default function FuhsingChroniclesApp() {
                       onChange={(event) => setPlayerNameInput(event.target.value)}
                       placeholder="例如：八年仁班 小光"
                       maxLength={40}
-                      className="mt-1.5 w-full rounded-xl border border-[#D9B978]/30 bg-[#101827] px-4 py-3 text-sm text-[#F3F1EA] placeholder:text-[#F3F1EA]/35 focus:border-[#D9B978] focus:outline-none"
+                      className="mt-1.5 w-full rounded-xl border border-[#103FA0]/30 bg-[#EAF0FA] px-4 py-3 text-sm text-[#213155] placeholder:text-[#213155]/35 focus:border-[#103FA0] focus:outline-none"
                       required
                     />
                   </label>
                   {setupError && (
-                    <p className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-3.5 py-2 text-xs text-rose-200">
+                    <p className="rounded-xl border border-[#D21E14]/35 bg-[#D21E14]/8 px-3.5 py-2 text-xs text-[#B41810]">
                       {setupError}
                     </p>
                   )}
                   <button
                     type="submit"
-                    className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-[#D9B978] px-6 py-3.5 text-base font-bold text-[#101827] transition hover:bg-[#E4C98F]"
+                    className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-[#F9CF00] px-6 py-3.5 text-base font-bold text-[#213155] transition hover:bg-[#FFDD33]"
                   >
                     建立本機存檔・開始探索
                     <ArrowRight className="h-5 w-5" />
@@ -551,7 +551,7 @@ export default function FuhsingChroniclesApp() {
                 <button
                   type="button"
                   onClick={() => setScreen("opening")}
-                  className="w-full text-sm text-[#F3F1EA]/65 hover:text-[#D9B978]"
+                  className="w-full text-sm text-[#213155]/65 hover:text-[#103FA0]"
                 >
                   返回封面
                 </button>
@@ -573,19 +573,19 @@ export default function FuhsingChroniclesApp() {
                 <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[#D9B978]/15 px-3 py-1 text-xs font-semibold text-[#D9B978]">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#F9CF00]/15 px-3 py-1 text-xs font-semibold text-[#103FA0]">
                         <User className="h-3.5 w-3.5" />
                         單機探索模式
                       </span>
-                      <span className="rounded-full border border-[#F3F1EA]/15 bg-[#101827] px-3 py-1 font-mono text-xs text-[#F3F1EA]/80">
+                      <span className="rounded-full border border-[#213155]/15 bg-[#EAF0FA] px-3 py-1 font-mono text-xs text-[#213155]/80">
                         進度儲存於此瀏覽器
                       </span>
                     </div>
 
-                    <h1 className="font-serif text-2xl font-bold text-[#F3F1EA] sm:text-3xl">
+                    <h1 className="font-serif text-2xl font-bold text-[#213155] sm:text-3xl">
                       {session.playerName} 的復興檔案
                     </h1>
-                    <p className="text-xs text-[#F3F1EA]/70">
+                    <p className="text-xs text-[#213155]/70">
                       建議以 50 分鐘漫步校園節奏進行探索（無倒數計時，請放心觀察與推理）
                     </p>
                   </div>
@@ -594,7 +594,7 @@ export default function FuhsingChroniclesApp() {
                     <button
                       type="button"
                       onClick={() => setScreen("map")}
-                      className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-[#D9B978] px-6 py-3 text-sm font-bold text-[#101827] transition hover:bg-[#E4C98F] shadow-[0_10px_28px_rgba(217,185,120,0.28)]"
+                      className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-[#F9CF00] px-6 py-3 text-sm font-bold text-[#213155] transition hover:bg-[#FFDD33] shadow-[0_10px_28px_rgba(249,207,0,0.28)]"
                     >
                       <MapIcon className="h-4 w-4" />
                       開啟互動校園地圖
@@ -609,8 +609,8 @@ export default function FuhsingChroniclesApp() {
                       }}
                       className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition ${
                         allEightDone
-                          ? "bg-[#65C99A] text-[#101827] hover:bg-[#7AD6AA]"
-                          : "cursor-not-allowed border border-[#F3F1EA]/15 bg-[#101827] text-[#F3F1EA]/45"
+                          ? "bg-[#008250] text-white hover:bg-[#006B41]"
+                          : "cursor-not-allowed border border-[#213155]/15 bg-[#EAF0FA] text-[#213155]/45"
                       }`}
                     >
                       {session.finalSolved ? (
@@ -634,7 +634,7 @@ export default function FuhsingChroniclesApp() {
                   type="button"
                   onClick={() => setSettings((current) => ({ ...current, historyMuseumOpen: !current.historyMuseumOpen }))}
                   aria-pressed={!settings.historyMuseumOpen}
-                  className="mt-5 min-h-11 rounded-xl border border-[#D9B978]/25 bg-[#101827] px-4 py-2 text-left text-xs text-[#F3F1EA]/80 hover:border-[#D9B978]/60"
+                  className="mt-5 min-h-11 rounded-xl border border-[#103FA0]/25 bg-[#EAF0FA] px-4 py-2 text-left text-xs text-[#213155]/80 hover:border-[#103FA0]/60"
                 >
                   情境設定：校史館目前{settings.historyMuseumOpen ? "開放" : "休館"}・點此切換，用於體驗 M04 替代檔案
                 </button>
@@ -642,29 +642,29 @@ export default function FuhsingChroniclesApp() {
                 {/* Progress Stats Row */}
                 <div className="mt-6 grid gap-3 sm:grid-cols-4">
                   <div className="archive-inset rounded-2xl p-3.5">
-                    <p className="text-xs text-[#F3F1EA]/65">已完成任務</p>
-                    <p className="mt-1 font-mono text-2xl font-bold text-[#F3F1EA]">
+                    <p className="text-xs text-[#213155]/65">已完成任務</p>
+                    <p className="mt-1 font-mono text-2xl font-bold text-[#213155]">
                       {session.completedMissions.length}{" "}
-                      <span className="text-sm text-[#F3F1EA]/50">/ 8</span>
+                      <span className="text-sm text-[#213155]/50">/ 8</span>
                     </p>
                   </div>
                   <div className="archive-inset rounded-2xl p-3.5">
-                    <p className="text-xs text-[#F3F1EA]/65">記憶碎片收集</p>
-                    <p className="mt-1 font-mono text-2xl font-bold text-[#65C99A]">
+                    <p className="text-xs text-[#213155]/65">記憶碎片收集</p>
+                    <p className="mt-1 font-mono text-2xl font-bold text-[#008250]">
                       {session.fragmentsCollected.length}{" "}
-                      <span className="text-sm text-[#F3F1EA]/50">/ 8 枚</span>
+                      <span className="text-sm text-[#213155]/50">/ 8 枚</span>
                     </p>
                   </div>
                   <div className="archive-inset rounded-2xl p-3.5">
-                    <p className="text-xs text-[#F3F1EA]/65">目前積分</p>
-                    <p className="mt-1 font-mono text-2xl font-bold text-[#D9B978]">
+                    <p className="text-xs text-[#213155]/65">目前積分</p>
+                    <p className="mt-1 font-mono text-2xl font-bold text-[#103FA0]">
                       {session.score}{" "}
-                      <span className="text-sm text-[#F3F1EA]/50">/ 100</span>
+                      <span className="text-sm text-[#213155]/50">/ 100</span>
                     </p>
                   </div>
                   <div className="archive-inset rounded-2xl p-3.5">
-                    <p className="text-xs text-[#F3F1EA]/65">已探索時間</p>
-                    <p className="mt-1 font-mono text-2xl font-bold text-[#F3F1EA]">
+                    <p className="text-xs text-[#213155]/65">已探索時間</p>
+                    <p className="mt-1 font-mono text-2xl font-bold text-[#213155]">
                       {formatDuration(elapsedSeconds)}
                     </p>
                   </div>
@@ -674,11 +674,11 @@ export default function FuhsingChroniclesApp() {
               {/* Memory Fragments Collection */}
               <div className="archive-card rounded-3xl p-5 sm:p-6 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="font-serif text-lg font-bold text-[#F3F1EA] flex items-center gap-2">
-                    <Award className="h-5 w-5 text-[#D9B978]" />
+                  <h2 className="font-serif text-lg font-bold text-[#213155] flex items-center gap-2">
+                    <Award className="h-5 w-5 text-[#103FA0]" />
                     記憶碎片典藏盒（{session.completedMissions.length} / 8）
                   </h2>
-                  <span className="text-xs text-[#F3F1EA]/60">
+                  <span className="text-xs text-[#213155]/60">
                     每完成一個校園任務即可收錄一枚記憶碎片
                   </span>
                 </div>
@@ -697,13 +697,13 @@ export default function FuhsingChroniclesApp() {
                         }}
                         className={`flex flex-col items-center justify-center rounded-2xl border p-3 text-center transition ${
                           collected
-                            ? "border-[#65C99A]/45 bg-[#101827] text-[#65C99A] shadow-[0_0_20px_rgba(101,201,154,0.14)]"
-                            : "border-[#F3F1EA]/10 bg-[#101827]/50 text-[#F3F1EA]/35"
+                            ? "border-[#008250]/45 bg-[#EAF0FA] text-[#008250] shadow-[0_0_20px_rgba(0,130,80,0.14)]"
+                            : "border-[#213155]/10 bg-[#EAF0FA]/50 text-[#213155]/35"
                         }`}
                       >
                         <div className="mb-1.5">
                           {collected ? (
-                            <FragmentSymbolIcon symbol={m.fragmentSymbol} className="h-6 w-6 text-[#D9B978]" />
+                            <FragmentSymbolIcon symbol={m.fragmentSymbol} className="h-6 w-6 text-[#103FA0]" />
                           ) : (
                             <Lock className="h-5 w-5" />
                           )}
@@ -723,14 +723,14 @@ export default function FuhsingChroniclesApp() {
               {/* All 8 Missions List */}
               <div className="archive-card rounded-3xl p-5 sm:p-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-serif text-lg font-bold text-[#F3F1EA] flex items-center gap-2">
-                    <LayoutGrid className="h-5 w-5 text-[#D9B978]" />
+                  <h2 className="font-serif text-lg font-bold text-[#213155] flex items-center gap-2">
+                    <LayoutGrid className="h-5 w-5 text-[#103FA0]" />
                     八大校園探索任務清單
                   </h2>
                   <button
                     type="button"
                     onClick={() => setScreen("map")}
-                    className="text-xs font-semibold text-[#D9B978] hover:underline"
+                    className="text-xs font-semibold text-[#103FA0] hover:underline"
                   >
                     在地圖上查看 →
                   </button>
@@ -748,35 +748,35 @@ export default function FuhsingChroniclesApp() {
                         onClick={() => handleSelectMission(m)}
                         className={`flex items-start justify-between gap-3 rounded-2xl border p-4 text-left transition ${
                           isDone
-                            ? "border-[#65C99A]/40 bg-[#101827] hover:border-[#65C99A]"
+                            ? "border-[#008250]/40 bg-[#EAF0FA] hover:border-[#008250]"
                             : isUnlocked
-                            ? "border-[#D9B978]/30 bg-[#101827] hover:border-[#D9B978]"
-                            : "cursor-not-allowed border-[#F3F1EA]/10 bg-[#101827]/45 opacity-60"
+                            ? "border-[#103FA0]/30 bg-[#EAF0FA] hover:border-[#103FA0]"
+                            : "cursor-not-allowed border-[#213155]/10 bg-[#EAF0FA]/45 opacity-60"
                         }`}
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-[#D9B978]">
+                            <span className="font-mono text-xs font-bold text-[#103FA0]">
                               {m.code}
                             </span>
-                            <span className="font-serif text-base font-bold text-[#F3F1EA]">
+                            <span className="font-serif text-base font-bold text-[#213155]">
                               {m.title}
                             </span>
                           </div>
-                          <p className="text-xs text-[#F3F1EA]/70">{m.locationName}</p>
+                          <p className="text-xs text-[#213155]/70">{m.locationName}</p>
                         </div>
 
                         <span className="shrink-0 pt-0.5">
                           {isDone ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#65C99A]/15 px-2.5 py-1 text-[11px] font-semibold text-[#65C99A]">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#008250]/15 px-2.5 py-1 text-[11px] font-semibold text-[#008250]">
                               <CheckCircle2 className="h-3.5 w-3.5" /> 完成
                             </span>
                           ) : isUnlocked ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#D9B978]/15 px-2.5 py-1 text-[11px] font-semibold text-[#D9B978]">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#F9CF00]/15 px-2.5 py-1 text-[11px] font-semibold text-[#103FA0]">
                               <Compass className="h-3.5 w-3.5" /> 探索
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-1 text-[11px] text-slate-400">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#213155]/8 px-2.5 py-1 text-[11px] text-[#213155]/55">
                               <Lock className="h-3.5 w-3.5" /> 待解鎖
                             </span>
                           )}
@@ -800,17 +800,17 @@ export default function FuhsingChroniclesApp() {
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h1 className="font-serif text-2xl font-bold text-[#F3F1EA]">
+                  <h1 className="font-serif text-2xl font-bold text-[#213155]">
                     復興校園探索互動地圖
                   </h1>
-                  <p className="text-xs text-[#F3F1EA]/70">
+                  <p className="text-xs text-[#213155]/70">
                     點擊地圖上的發光任務節點開始探索，可自由縮放或拖曳查看各區建築特色。
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setScreen("dashboard")}
-                  className="inline-flex min-h-[42px] items-center gap-1.5 rounded-xl border border-[#D9B978]/35 bg-[#1B2A40] px-4 py-2 text-xs font-semibold text-[#D9B978] hover:bg-[#D9B978]/10"
+                  className="inline-flex min-h-[42px] items-center gap-1.5 rounded-xl border border-[#103FA0]/35 bg-[#EAF0FA] px-4 py-2 text-xs font-semibold text-[#103FA0] hover:bg-[#103FA0]/10"
                 >
                   <LayoutGrid className="h-4 w-4" /> 返回檔案總覽
                 </button>
@@ -925,12 +925,12 @@ export default function FuhsingChroniclesApp() {
 
       {/* OFFICIAL SOURCES & SAFETY MODAL */}
       {showSourcesModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#070B14]/85 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#213155]/45 p-4 backdrop-blur-sm">
           <div className="archive-card my-auto w-full max-w-3xl rounded-3xl p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#D9B978]/20 pb-3">
+            <div className="flex items-center justify-between border-b border-[#103FA0]/20 pb-3">
               <div className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-[#D9B978]" />
-                <h2 className="font-serif text-xl font-bold text-[#F3F1EA]">
+                <BookOpen className="h-5 w-5 text-[#103FA0]" />
+                <h2 className="font-serif text-xl font-bold text-[#213155]">
                   官方資料來源與校園安全守則
                 </h2>
               </div>
@@ -938,15 +938,15 @@ export default function FuhsingChroniclesApp() {
                 type="button"
                 onClick={() => setShowSourcesModal(false)}
                 aria-label="關閉資料來源視窗"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#F3F1EA]/20 bg-[#101827] text-[#F3F1EA]"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#213155]/20 bg-[#EAF0FA] text-[#213155]"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="rounded-2xl border border-[#65C99A]/35 bg-[#101827] p-4 space-y-1.5">
-              <p className="text-xs font-bold text-[#65C99A]">活動安全守則</p>
-              <p className="text-xs leading-relaxed text-[#F3F1EA]/85">
+            <div className="rounded-2xl border border-[#008250]/35 bg-[#EAF0FA] p-4 space-y-1.5">
+              <p className="text-xs font-bold text-[#008250]">活動安全守則</p>
+              <p className="text-xs leading-relaxed text-[#213155]/85">
                 本遊戲設計遵循臺北市私立復興實驗高級中學校園安全規範：禁止奔跑、攀爬、跳躍，不可進入管制區或正在上課之教室，亦不可打擾老師、行政人員或拍攝其他學生。若校史館未開放，請直接使用關卡內的數位校史檔案作答。
               </p>
             </div>
@@ -958,16 +958,16 @@ export default function FuhsingChroniclesApp() {
                   href={src.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded-xl border border-[#F3F1EA]/12 bg-[#101827] p-3.5 transition hover:border-[#D9B978]"
+                  className="block rounded-xl border border-[#213155]/12 bg-[#EAF0FA] p-3.5 transition hover:border-[#103FA0]"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="rounded bg-[#D9B978]/15 px-2 py-0.5 text-[10px] font-semibold text-[#D9B978]">
+                    <span className="rounded bg-[#F9CF00]/15 px-2 py-0.5 text-[10px] font-semibold text-[#103FA0]">
                       {src.category}
                     </span>
-                    <ExternalLink className="h-3.5 w-3.5 text-[#D9B978]" />
+                    <ExternalLink className="h-3.5 w-3.5 text-[#103FA0]" />
                   </div>
-                  <p className="mt-1 text-sm font-semibold text-[#F3F1EA]">{src.title}</p>
-                  <p className="mt-0.5 text-xs text-[#F3F1EA]/65">{src.note}</p>
+                  <p className="mt-1 text-sm font-semibold text-[#213155]">{src.title}</p>
+                  <p className="mt-0.5 text-xs text-[#213155]/65">{src.note}</p>
                 </a>
               ))}
             </div>
