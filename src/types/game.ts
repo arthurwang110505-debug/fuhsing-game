@@ -14,7 +14,6 @@ export interface PublicMission {
   subtitle: string;
   locationName: string;
   locationNote: string;
-  sceneImage: string;
   mapX: number;
   mapY: number;
   storyBackground: string;

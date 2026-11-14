@@ -7,7 +7,6 @@ export interface SeedMission {
   subtitle: string;
   locationName: string;
   locationNote: string;
-  sceneImage: string;
   mapX: number;
   mapY: number;
   storyBackground: string;
@@ -118,9 +117,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "把校史、校址與建築資料串成證據鏈",
     locationName: "序章・官方資料交叉驗證",
     locationNote: "文字推理關卡；不要求前往特定校內位置。",
-    sceneImage: "/images/scene-m01-archive.jpg",
-    mapX: 320,
-    mapY: 970,
+    mapX: 338,
+    mapY: 864,
     storyBackground:
       "第一封檔案沒有照片，只有數份互相交疊的校史與校園文字紀錄。年份同時使用民國與西元，建築段落則混合了方向、設計概念與地標。請交叉核對證據，分辨哪些結論真的能由來源推出，哪些只是看似合理的猜測。",
     safetyNotice: "本關只需閱讀文字資料；不必前往任何校內位置，也不可把示意地圖當作實際路線。",
@@ -193,9 +191,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "晨鐘暮鼓中的四字箴言",
     locationName: "左側鐘樓（鐘塔）前廣場",
     locationNote: "示意定位：校園左側紅磚鐘塔地標區",
-    sceneImage: "/images/scene-m02-bell-tower.jpg",
-    mapX: 130,
-    mapY: 560,
+    mapX: 196,
+    mapY: 872,
     storyBackground:
       "仰望左側的紅磚鐘樓，那座在城市喧囂中依然守候校園節奏的建築，靜靜述說著「晨鐘暮鼓」的儀式感。信封夾頁裡藏著一張黃銅字盤，記錄著復興鐘塔所代表的四字校訓，等待你透過字義線索推敲出來。",
     safetyNotice: "請於廣場開闊處抬頭觀察鐘塔造型，切勿攀爬花台或追逐推擠。",
@@ -257,9 +254,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "高低錯落的光影對話",
     locationName: "校舍建築群戶外連結步道",
     locationNote: "示意定位：主要教學樓群與特色館舍意象區",
-    sceneImage: "/images/scene-m03-buildings.jpg",
-    mapX: 540,
-    mapY: 440,
+    mapX: 268,
+    mapY: 478,
     storyBackground:
       "在寸土寸金的臺北東區，復興校園走出傳統單調的校舍配置：建築師把較高的樓層擺在北邊、較低的樓層擺在南邊，讓陽光與微風穿過高低錯落的連結步道與天橋。而每一棟樓舍與專門空間，也都有屬於自己的名字與使命。",
     safetyNotice: "探索時請勿進入正在上課的教室，並保持走廊與樓梯間輕聲細語、不奔跑。",
@@ -308,9 +304,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "從光復初春走向十三年一貫",
     locationName: "校史館外廊（含閉館數位檔案替代站）",
     locationNote: "示意定位：校史紀念與時間典藏展示區",
-    sceneImage: "/images/scene-m04-museum.jpg",
-    mapX: 475,
-    mapY: 270,
+    mapX: 559,
+    mapY: 496,
     storyBackground:
       "檔案盒中附有一座黃銅齒輪鎖，紀錄著復興如何從一所幼稚園一步步成長為包含幼兒園、小學、國中、高中與雙語部的實驗學府。無論校史館今天是否開放，你都能透過這份經過驗證的官方校史檔案，重組學校的誕生脈絡。",
     safetyNotice: "若校史館未開放，請直接使用畫面中的「數位校史檔案替代室」完成任務，切勿推門或打擾館務人員。",
@@ -361,9 +356,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "從文字證據拆解六層象徵",
     locationName: "校徽檔案・文字推理",
     locationNote: "不需查看圖片或前往旗桿區；依據校方文字說明作答。",
-    sceneImage: "/images/scene-m05-emblem.jpg",
-    mapX: 270,
-    mapY: 385,
+    mapX: 435,
+    mapY: 440,
     storyBackground:
       "檔案室收到六張被拆散的校徽文字註解卡。有人把圖形構件、構件數量和象徵寓意混成一團；請只依據校方的文字紀錄，重新建立六條精確的對應關係。",
     safetyNotice: "本關為純文字配對，不需觸碰校旗、旗繩或任何校園設施。",
@@ -413,9 +407,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "東區林蔭中的生態呼吸",
     locationName: "小花園與中庭綠意步道",
     locationNote: "示意定位：校園中央植栽花園與生態景觀區",
-    sceneImage: "/images/scene-m06-garden.jpg",
-    mapX: 405,
-    mapY: 475,
+    mapX: 400,
+    mapY: 300,
     storyBackground:
       "踏出繁忙擁擠的臺北東區馬路，校園裡卻保有讓人沉靜呼吸的青翠中庭與小花園。建築設計師用「綠的延伸」概念把林蔭帶進校園，老師與同學也在這裡建立起生態循環的小天地。",
     safetyNotice: "觀察植物與魚菜共生區時請保持安全距離，切勿伸手撈水、觸碰設備或摘折枝葉。",
@@ -472,9 +465,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "誰在守護每天的校園運轉？",
     locationName: "行政穿堂公告欄旁（遠距觀察）",
     locationNote: "示意定位：校園行政服務中軸穿堂意象區",
-    sceneImage: "/images/scene-m07-office.jpg",
-    mapX: 465,
-    mapY: 680,
+    mapX: 559,
+    mapY: 818,
     storyBackground:
       "每天鐘聲準時響起、社團充滿歡笑、教室設備穩定運作、同學遇到困惑也有人傾聽——這些日常背後，是一群默默守望的行政處室團隊。現在有八份情境紀錄需要歸檔；請根據每項主要待辦找出正確的求助窗口，不必前往任何辦公室。",
     safetyNotice: "本關卡完全透過情境資料作答，請勿進入行政辦公室、亦勿打擾正在辦公的教職員與師長。",
@@ -526,9 +518,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     subtitle: "七枚線索匯流的核心檔案",
     locationName: "總結檔案・安靜安全處",
     locationNote: "可在安全處整理線索；地圖節點不代表實際集合位置。",
-    sceneImage: "/images/scene-m08-finale.jpg",
-    mapX: 285,
-    mapY: 650,
+    mapX: 343,
+    mapY: 625,
     storyBackground:
       "七枚記憶碎片已經安靜地排列在你的探索檔案盒中，散發著暖金色的微光。現在，這封來自過去的信只剩下最後一道綜合檔案鎖——它考驗你能否把前七關看到的歷史、校徽、鐘塔精神與學生素養融會貫通。",
     safetyNotice: "本關可於中庭長椅或安靜安全處彙整前七關線索完成，保持安靜不影響他人。",

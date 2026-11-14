@@ -1067,24 +1067,16 @@ export default function FuhsingChroniclesApp() {
                             : "cursor-not-allowed border-[#213155]/10 bg-[#EAF0FA]/45 opacity-60"
                         }`}
                       >
-                        <div className="flex min-w-0 items-start gap-3">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={m.sceneImage}
-                            alt=""
-                            className="h-12 w-12 shrink-0 rounded-xl object-cover"
-                          />
-                          <div className="min-w-0 space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-xs font-bold text-[#103FA0]">
-                                {m.code}
-                              </span>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-bold text-[#103FA0]">
+                              {m.code}
+                            </span>
                             <span className="font-serif text-base font-bold text-[#213155]">
                               {m.title}
                             </span>
                           </div>
-                            <p className="text-xs text-[#213155]/70">{m.locationName}</p>
-                          </div>
+                          <p className="text-xs text-[#213155]/70">{m.locationName}</p>
                         </div>
 
                         <span className="shrink-0 pt-0.5">
