@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type {
   FinalPuzzleMeta,
@@ -15,8 +15,16 @@ import CampusMapSVG from "./CampusMapSVG";
 import PuzzlePlayfield from "./PuzzlePlayfield";
 import MissionCompleteModal, { FragmentSymbolIcon } from "./MissionCompleteModal";
 import { EndingScreenView, FinalPuzzleView } from "./FinalPuzzleAndEnding";
-import AdminConsole from "./AdminConsole";
-import { FINAL_PUZZLE_DATA } from "@/lib/seed-data";
+import { FINAL_PUZZLE_DATA, OFFICIAL_SOURCES, SEED_MISSIONS } from "@/lib/seed-data";
+import {
+  computeTotalScore,
+  computeUnlockedMissionIds,
+  extractSolvedDetail,
+  getLocalMissions,
+  getLocalSettings,
+  gradeFinalSeal,
+  gradeMissionAnswer,
+} from "@/lib/game-engine";
 import {
   ArrowRight,
   Award,
@@ -26,19 +34,16 @@ import {
   Compass,
   ExternalLink,
   Flame,
-  KeyRound,
   LayoutGrid,
   Lock,
   Map as MapIcon,
-  Shield,
   ShieldCheck,
   Sparkles,
   User,
-  Users,
   X,
 } from "lucide-react";
 
-const STORAGE_SESSION_KEY = "fuhsing_chronicles_session_id";
+const STORAGE_SESSION_KEY = "fuhsing_chronicles_local_save_v2";
 
 function formatDuration(totalSeconds: number): string {
   const mins = Math.floor(totalSeconds / 60);
@@ -48,36 +53,21 @@ function formatDuration(totalSeconds: number): string {
 
 export default function FuhsingChroniclesApp() {
   const [booting, setBooting] = useState(true);
+  const [saveReady, setSaveReady] = useState(false);
   const [screen, setScreen] = useState<GameScreen>("opening");
-
-  const [missions, setMissions] = useState<PublicMission[]>([]);
-  const [settings, setSettings] = useState<GameSettings>({
-    id: 1,
-    historyMuseumOpen: true,
-    forceUnlockAll: false,
-  });
+  const [missions] = useState<PublicMission[]>(() => getLocalMissions());
+  const [settings, setSettings] = useState<GameSettings>(() => getLocalSettings());
   const [session, setSession] = useState<GameSession | null>(null);
-  const [unlockedIds, setUnlockedIds] = useState<number[]>([]);
   const [solvedDetails, setSolvedDetails] = useState<Record<number, SolvedMissionDetail>>({});
-  const [officialSources, setOfficialSources] = useState<OfficialSourceItem[]>([]);
-  const [finalPuzzleMeta, setFinalPuzzleMeta] = useState<FinalPuzzleMeta | null>(null);
-
-  // Active Mission & Completion Modal state
+  const [officialSources] = useState<OfficialSourceItem[]>(OFFICIAL_SOURCES);
+  const [finalPuzzleMeta] = useState<FinalPuzzleMeta>(FINAL_PUZZLE_DATA);
   const [activeMissionId, setActiveMissionId] = useState<number>(1);
   const [justSolvedModal, setJustSolvedModal] = useState<{
     mission: PublicMission;
     detail: SolvedMissionDetail;
   } | null>(null);
-
-  // Setup Form state
-  const [setupMode, setSetupMode] = useState<"solo" | "team">("solo");
   const [playerNameInput, setPlayerNameInput] = useState("");
-  const [teamNameInput, setTeamNameInput] = useState("");
-  const [resumeCodeInput, setResumeCodeInput] = useState("");
   const [setupError, setSetupError] = useState("");
-  const [setupBusy, setSetupBusy] = useState(false);
-
-  // Puzzle Submission & Feedback state
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
   const [puzzleFeedback, setPuzzleFeedback] = useState<{
     type: "error" | "success";
@@ -87,168 +77,108 @@ export default function FuhsingChroniclesApp() {
     missionId: number;
     hints: Partial<Record<1 | 2, string>>;
   }>({ missionId: 0, hints: {} });
-
-  // Timer state
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-
-  // Overlays
-  const [showAdmin, setShowAdmin] = useState(false);
   const [showSourcesModal, setShowSourcesModal] = useState(false);
   const [endingStory, setEndingStory] = useState<string[]>(FINAL_PUZZLE_DATA.endingStory);
 
-  const applyBootstrapPayload = useCallback(
-    (data: {
-      missions?: PublicMission[];
-      settings?: GameSettings;
-      session?: GameSession | null;
-      unlockedIds?: number[];
-      solvedDetails?: Record<number, SolvedMissionDetail>;
-      officialSources?: OfficialSourceItem[];
-      finalPuzzleMeta?: FinalPuzzleMeta;
-    }) => {
-      if (data.missions) setMissions(data.missions);
-      if (data.settings) setSettings(data.settings);
-      if (data.unlockedIds) setUnlockedIds(data.unlockedIds);
-      if (data.solvedDetails) setSolvedDetails(data.solvedDetails);
-      if (data.officialSources) setOfficialSources(data.officialSources);
-      if (data.finalPuzzleMeta) setFinalPuzzleMeta(data.finalPuzzleMeta);
-
-      if (data.session !== undefined) {
-        setSession(data.session);
-        if (data.session) {
-          setElapsedSeconds(data.session.elapsedSeconds || 0);
-          try {
-            localStorage.setItem(STORAGE_SESSION_KEY, data.session.id);
-          } catch {
-            // ignore storage errors
-          }
-        }
-      }
-    },
-    []
-  );
-
-  const loadBootstrap = useCallback(
-    async (explicitSessionId?: string | null) => {
-      let sid = explicitSessionId;
-      if (sid === undefined) {
-        try {
-          sid = localStorage.getItem(STORAGE_SESSION_KEY);
-        } catch {
-          sid = null;
-        }
-      }
-
-      const url = sid
-        ? `/api/game/bootstrap?sessionId=${encodeURIComponent(sid)}`
-        : "/api/game/bootstrap";
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) return null;
-      const data = await res.json();
-      applyBootstrapPayload(data);
-      return data;
-    },
-    [applyBootstrapPayload]
-  );
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
+      void navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+    }
+  }, []);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await loadBootstrap();
-        if (data?.session) {
-          setScreen(data.session.finalSolved ? "ending" : "dashboard");
+    try {
+      const raw = localStorage.getItem(STORAGE_SESSION_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as {
+          session?: GameSession;
+          solvedDetails?: Record<number, SolvedMissionDetail>;
+          settings?: GameSettings;
+          elapsedSeconds?: number;
+        };
+        if (saved.session && Array.isArray(saved.session.completedMissions)) {
+          // Hydrate the single-device save after the browser has mounted.
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setSession(saved.session);
+          setSolvedDetails(saved.solvedDetails ?? {});
+          setSettings(saved.settings ?? getLocalSettings());
+          setElapsedSeconds(Number.isFinite(saved.elapsedSeconds) ? Math.max(0, saved.elapsedSeconds!) : 0);
+          setScreen(saved.session.finalSolved ? "ending" : "dashboard");
         }
-      } finally {
-        setBooting(false);
       }
-    })();
-  }, [loadBootstrap]);
+    } catch {
+      try { localStorage.removeItem(STORAGE_SESSION_KEY); } catch { /* storage unavailable */ }
+    } finally {
+      setSaveReady(true);
+      setBooting(false);
+    }
+  }, []);
 
-  // Non-pressured elapsed time ticker
-  const isPlayActive =
-    Boolean(session) &&
-    !session?.finalSolved &&
+  useEffect(() => {
+    if (!saveReady) return;
+    try {
+      if (!session) {
+        localStorage.removeItem(STORAGE_SESSION_KEY);
+      } else {
+        localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify({ session, solvedDetails, settings, elapsedSeconds }));
+      }
+    } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPuzzleFeedback({ type: "error", message: "此瀏覽器無法儲存本機進度，請確認儲存空間設定。" });
+    }
+  }, [saveReady, session, solvedDetails, settings, elapsedSeconds]);
+
+  const isPlayActive = Boolean(session) && !session?.finalSolved &&
     ["dashboard", "map", "mission-detail", "puzzle", "final-puzzle"].includes(screen);
 
   useEffect(() => {
     if (!isPlayActive) return;
-    const interval = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1);
-    }, 1000);
+    const interval = setInterval(() => setElapsedSeconds((prev) => prev + 1), 1000);
     return () => clearInterval(interval);
   }, [isPlayActive]);
 
-  // Periodic sync of elapsedSeconds to PostgreSQL every 15s
-  useEffect(() => {
-    if (!session || !isPlayActive || elapsedSeconds === 0) return;
-    if (elapsedSeconds % 15 !== 0) return;
-    void fetch(`/api/sessions/${session.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ elapsedSeconds }),
-    });
-  }, [elapsedSeconds, isPlayActive, session]);
-
   const activeMission = useMemo(
-    () => missions.find((m) => m.id === activeMissionId) ?? missions[0],
+    () => missions.find((mission) => mission.id === activeMissionId) ?? missions[0],
     [activeMissionId, missions]
   );
-
-  const completedSet = useMemo(
-    () => new Set(session?.completedMissions ?? []),
+  const completedSet = useMemo(() => new Set(session?.completedMissions ?? []), [session?.completedMissions]);
+  const unlockedIds = useMemo(
+    () => computeUnlockedMissionIds(SEED_MISSIONS, session?.completedMissions ?? []),
     [session?.completedMissions]
   );
+  const allEightDone = [1, 2, 3, 4, 5, 6, 7, 8].every((id) => completedSet.has(id));
 
-  const allEightDone = useMemo(
-    () => [1, 2, 3, 4, 5, 6, 7, 8].every((id) => completedSet.has(id)),
-    [completedSet]
-  );
-
-  // Handlers
-  const handleCreateSession = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSetupError("");
-    setSetupBusy(true);
-    try {
-      const res = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: setupMode,
-          playerName: playerNameInput,
-          teamName: setupMode === "team" ? teamNameInput : undefined,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setSetupError(data.error || "建立探索檔案失敗");
-        return;
-      }
-      applyBootstrapPayload(data);
-      setScreen("dashboard");
-    } finally {
-      setSetupBusy(false);
+  const handleCreateSession = (event: React.FormEvent) => {
+    event.preventDefault();
+    const playerName = playerNameInput.trim();
+    if (!playerName) {
+      setSetupError("請填寫探索員名稱再出發！");
+      return;
     }
-  };
-
-  const handleResumeByCode = async (e: React.FormEvent) => {
-    e.preventDefault();
+    const id = typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `local-${Date.now()}`;
+    const createdAt = new Date().toISOString();
+    const newSession: GameSession = {
+      id,
+      mode: "solo",
+      playerName: playerName.slice(0, 40),
+      startedAt: createdAt,
+      completedAt: null,
+      elapsedSeconds: 0,
+      score: 0,
+      completedMissions: [],
+      fragmentsCollected: [],
+      hintsUsed: {},
+      attemptsLog: {},
+      finalSolved: false,
+    };
+    setSession(newSession);
+    setSolvedDetails({});
+    setElapsedSeconds(0);
     setSetupError("");
-    setSetupBusy(true);
-    try {
-      const res = await fetch(
-        `/api/sessions?code=${encodeURIComponent(resumeCodeInput.trim().toUpperCase())}`
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        setSetupError(data.error || "找不到探索代碼");
-        return;
-      }
-      applyBootstrapPayload(data);
-      setScreen(data.session?.finalSolved ? "ending" : "dashboard");
-    } finally {
-      setSetupBusy(false);
-    }
+    setScreen("dashboard");
   };
 
   const handleSelectMission = (mission: PublicMission) => {
@@ -257,162 +187,78 @@ export default function FuhsingChroniclesApp() {
     setScreen("mission-detail");
   };
 
-  const handleOpenHint = async (stage: 1 | 2) => {
+  const handleOpenHint = (stage: 1 | 2) => {
     if (!session || !activeMission) return;
-    const res = await fetch(
-      `/api/missions/${activeMission.id}/hint?sessionId=${encodeURIComponent(session.id)}&stage=${stage}`,
-      { cache: "no-store" }
-    );
-    const data = await res.json();
-    if (!res.ok) {
-      setPuzzleFeedback({ type: "error", message: data.error || "目前無法開啟提示，請稍後再試。" });
+    const source = SEED_MISSIONS.find((mission) => mission.id === activeMission.id);
+    if (!source) return;
+    const key = String(activeMission.id);
+    setSession((previous) => previous ? {
+      ...previous,
+      hintsUsed: { ...previous.hintsUsed, [key]: Math.max(previous.hintsUsed[key] ?? 0, stage) },
+    } : previous);
+    setRevealedHints((previous) => ({
+      missionId: activeMission.id,
+      hints: { ...(previous.missionId === activeMission.id ? previous.hints : {}), [stage]: stage === 1 ? source.hint1 : source.hint2 },
+    }));
+  };
+
+  const handleSubmitMissionAnswer = (answer: unknown) => {
+    if (!session || !activeMission) return;
+    const source = SEED_MISSIONS.find((mission) => mission.id === activeMission.id);
+    if (!source) return;
+    setSubmittingAnswer(true);
+    setPuzzleFeedback(null);
+    const result = gradeMissionAnswer(source, answer);
+    const missionKey = String(activeMission.id);
+    const attemptsLog = { ...session.attemptsLog, [missionKey]: (session.attemptsLog[missionKey] ?? 0) + 1 };
+    if (!result.isCorrect) {
+      setSession({ ...session, attemptsLog });
+      setPuzzleFeedback({ type: "error", message: result.feedback });
+      setSubmittingAnswer(false);
       return;
     }
 
-    setRevealedHints((prev) => ({
-      missionId: activeMission.id,
-      hints: {
-        ...(prev.missionId === activeMission.id ? prev.hints : {}),
-        [stage]: data.hint,
-      },
-    }));
-    setSession((prev) => prev ? { ...prev, hintsUsed: data.hintsUsed } : prev);
+    const completedMissions = [...new Set([...session.completedMissions, activeMission.id])].sort((a, b) => a - b);
+    const fragmentsCollected = [...new Set([...session.fragmentsCollected, source.fragmentName])];
+    const updatedSession: GameSession = {
+      ...session,
+      completedMissions,
+      fragmentsCollected,
+      attemptsLog,
+      score: computeTotalScore(completedMissions, session.finalSolved),
+      completedAt: completedMissions.length === 8 ? new Date().toISOString() : session.completedAt,
+    };
+    const detail = extractSolvedDetail(source);
+    setSession(updatedSession);
+    setSolvedDetails((previous) => ({ ...previous, [activeMission.id]: detail }));
+    setJustSolvedModal({ mission: activeMission, detail });
+    setSubmittingAnswer(false);
   };
 
-  const handleSubmitMissionAnswer = async (answer: unknown) => {
-    if (!session || !activeMission) return;
-    setSubmittingAnswer(true);
-    setPuzzleFeedback(null);
-    try {
-      const res = await fetch(`/api/missions/${activeMission.id}/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: session.id,
-          answer,
-          elapsedSeconds,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setPuzzleFeedback({
-          type: "error",
-          message: data.error || "目前無法送出答案，請稍後再試。",
-        });
-        return;
-      }
-
-      if (data.session) setSession(data.session);
-      if (data.unlockedIds) setUnlockedIds(data.unlockedIds);
-
-      if (!data.isCorrect) {
-        setPuzzleFeedback({
-          type: "error",
-          message: data.feedback,
-        });
-        return;
-      }
-
-      if (data.solvedDetail) {
-        setSolvedDetails((prev) => ({
-          ...prev,
-          [activeMission.id]: data.solvedDetail,
-        }));
-        setJustSolvedModal({
-          mission: activeMission,
-          detail: data.solvedDetail,
-        });
-      }
-    } finally {
-      setSubmittingAnswer(false);
-    }
-  };
-
-  const handleSubmitFinalPuzzle = async (order: string[]) => {
+  const handleSubmitFinalPuzzle = (order: string[]) => {
     if (!session) return;
+    if (!allEightDone) {
+      setPuzzleFeedback({ type: "error", message: "必須先完成八道任務、收集全部記憶碎片，才能啟動最終謎題。" });
+      return;
+    }
     setSubmittingAnswer(true);
-    setPuzzleFeedback(null);
-    try {
-      const res = await fetch("/api/final-puzzle/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: session.id,
-          order,
-          elapsedSeconds,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.isCorrect) {
-        setPuzzleFeedback({
-          type: "error",
-          message: data.feedback || data.error || "順序還差一點點，再檢查看看！",
-        });
-        return;
-      }
-      if (data.session) setSession(data.session);
-      if (data.endingStory) setEndingStory(data.endingStory);
+    const result = gradeFinalSeal(order);
+    setPuzzleFeedback(result.isCorrect ? { type: "success", message: result.feedback } : { type: "error", message: result.feedback });
+    if (result.isCorrect) {
+      setSession({ ...session, finalSolved: true, completedAt: session.completedAt ?? new Date().toISOString(), score: computeTotalScore(session.completedMissions, true) });
+      setEndingStory(FINAL_PUZZLE_DATA.endingStory);
       setScreen("ending");
-    } finally {
-      setSubmittingAnswer(false);
     }
-  };
-
-  const handleDirectTestMission = async (missionId: number) => {
-    let targetSession = session;
-    if (!targetSession) {
-      const res = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: "solo",
-          playerName: "管理員測試員",
-          isAdminTestSession: true,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        applyBootstrapPayload(data);
-        targetSession = data.session;
-      }
-    } else {
-      await loadBootstrap(targetSession.id);
-    }
-    setActiveMissionId(missionId);
-    setPuzzleFeedback(null);
-    setShowAdmin(false);
-    setScreen("puzzle");
-  };
-
-  const handleResetCurrentSession = async () => {
-    if (!session) return;
-    const res = await fetch(`/api/sessions/${session.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "reset" }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      applyBootstrapPayload(data);
-      setJustSolvedModal(null);
-      setPuzzleFeedback(null);
-      setScreen("dashboard");
-    }
+    setSubmittingAnswer(false);
   };
 
   const handleStartFreshAdventure = () => {
-    try {
-      localStorage.removeItem(STORAGE_SESSION_KEY);
-    } catch {
-      // ignore
-    }
     setSession(null);
     setSolvedDetails({});
     setElapsedSeconds(0);
     setPlayerNameInput("");
-    setTeamNameInput("");
-    setResumeCodeInput("");
     setPuzzleFeedback(null);
+    setJustSolvedModal(null);
     setScreen("setup");
   };
 
@@ -477,15 +323,6 @@ export default function FuhsingChroniclesApp() {
               <span className="hidden sm:inline">資料來源與安全</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowAdmin(true)}
-              aria-label="管理員與測試模式"
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#D9B978]/35 bg-[#1B2A40] px-2.5 text-xs font-medium text-[#D9B978] transition hover:bg-[#D9B978]/15"
-            >
-              <Shield className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">管理員</span>
-            </button>
           </div>
         </div>
 
@@ -493,9 +330,7 @@ export default function FuhsingChroniclesApp() {
         {session && (
           <div className="flex items-center justify-between border-t border-[#D9B978]/10 bg-[#142033] px-4 py-2 text-xs md:hidden">
             <span className="font-medium text-[#F3F1EA]/85 truncate max-w-[140px]">
-              {session.mode === "team" && session.teamName
-                ? session.teamName
-                : session.playerName}
+              {session.playerName}
             </span>
             <div className="flex items-center gap-3 font-mono">
               <span className="text-[#D9B978]">{formatDuration(elapsedSeconds)}</span>
@@ -588,7 +423,7 @@ export default function FuhsingChroniclesApp() {
                           }
                           className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl border border-[#65C99A]/45 bg-[#101827] px-5 py-2.5 text-sm font-semibold text-[#65C99A] transition hover:bg-[#65C99A]/10"
                         >
-                          繼續先前的探索（檔案 {session.sessionCode}）
+                          繼續此裝置上的探索進度
                         </button>
                       )}
                     </div>
@@ -679,7 +514,7 @@ export default function FuhsingChroniclesApp() {
             </motion.section>
           )}
 
-          {/* SCREEN 03: PLAYER SETUP */}
+          {/* SCREEN 03: LOCAL PLAYER SETUP */}
           {screen === "setup" && (
             <motion.section
               key="setup"
@@ -691,126 +526,48 @@ export default function FuhsingChroniclesApp() {
               <div className="archive-card rounded-3xl p-6 sm:p-8 space-y-6">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#D9B978]">
-                    EXPLORER REGISTRATION
+                    LOCAL EXPLORER PROFILE
                   </p>
                   <h2 className="mt-1 font-serif text-2xl font-bold text-[#F3F1EA]">
-                    選擇探索模式與建立檔案
+                    建立本機探索檔案
                   </h2>
-                  <p className="mt-1 text-xs text-[#F3F1EA]/70">
-                    使用單一裝置即可進行單人或小組探索；系統將保存進度於雲端資料庫與本機，重新整理不會遺失紀錄。
+                  <p className="mt-1 text-xs leading-relaxed text-[#F3F1EA]/70">
+                    單人、單一裝置遊玩。進度只儲存在此瀏覽器，不需要帳號、雲端或資料庫；首次載入並快取後可離線繼續，清除瀏覽器資料會刪除存檔。
                   </p>
                 </div>
-
-                {/* Mode Switcher */}
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSetupMode("solo")}
-                    className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition ${
-                      setupMode === "solo"
-                        ? "border-[#D9B978] bg-[#101827] ring-2 ring-[#D9B978]/35"
-                        : "border-[#F3F1EA]/15 bg-[#101827]/60 hover:border-[#D9B978]/50"
-                    }`}
-                  >
-                    <User className="h-5 w-5 text-[#D9B978]" />
-                    <div>
-                      <p className="text-sm font-bold text-[#F3F1EA]">A. 單人模式</p>
-                      <p className="text-xs text-[#F3F1EA]/65">獨立展開校園解謎</p>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSetupMode("team")}
-                    className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition ${
-                      setupMode === "team"
-                        ? "border-[#D9B978] bg-[#101827] ring-2 ring-[#D9B978]/35"
-                        : "border-[#F3F1EA]/15 bg-[#101827]/60 hover:border-[#D9B978]/50"
-                    }`}
-                  >
-                    <Users className="h-5 w-5 text-[#65C99A]" />
-                    <div>
-                      <p className="text-sm font-bold text-[#F3F1EA]">B. 組隊模式</p>
-                      <p className="text-xs text-[#F3F1EA]/65">同學共用一支手機合作</p>
-                    </div>
-                  </button>
-                </div>
-
                 <form onSubmit={handleCreateSession} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#D9B978]">
-                      {setupMode === "team" ? "隊長／主要記錄員名稱" : "探索員名稱"}
-                    </label>
+                  <label className="block text-xs font-semibold text-[#D9B978]">
+                    探索員名稱
                     <input
                       type="text"
                       value={playerNameInput}
-                      onChange={(e) => setPlayerNameInput(e.target.value)}
+                      onChange={(event) => setPlayerNameInput(event.target.value)}
                       placeholder="例如：八年仁班 小光"
                       maxLength={40}
                       className="mt-1.5 w-full rounded-xl border border-[#D9B978]/30 bg-[#101827] px-4 py-3 text-sm text-[#F3F1EA] placeholder:text-[#F3F1EA]/35 focus:border-[#D9B978] focus:outline-none"
                       required
                     />
-                  </div>
-
-                  {setupMode === "team" && (
-                    <div>
-                      <label className="block text-xs font-semibold text-[#65C99A]">
-                        探索小隊名稱
-                      </label>
-                      <input
-                        type="text"
-                        value={teamNameInput}
-                        onChange={(e) => setTeamNameInput(e.target.value)}
-                        placeholder="例如：紅磚火炬探索隊"
-                        maxLength={40}
-                        className="mt-1.5 w-full rounded-xl border border-[#65C99A]/35 bg-[#101827] px-4 py-3 text-sm text-[#F3F1EA] placeholder:text-[#F3F1EA]/35 focus:border-[#65C99A] focus:outline-none"
-                        required
-                      />
-                    </div>
-                  )}
-
+                  </label>
                   {setupError && (
                     <p className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-3.5 py-2 text-xs text-rose-200">
                       {setupError}
                     </p>
                   )}
-
                   <button
                     type="submit"
-                    disabled={setupBusy}
-                    className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-[#D9B978] px-6 py-3.5 text-base font-bold text-[#101827] transition hover:bg-[#E4C98F] disabled:opacity-60"
+                    className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-[#D9B978] px-6 py-3.5 text-base font-bold text-[#101827] transition hover:bg-[#E4C98F]"
                   >
-                    {setupBusy ? "建立檔案中..." : "領取探索羅盤・進入校園總覽"}
+                    建立本機存檔・開始探索
                     <ArrowRight className="h-5 w-5" />
                   </button>
                 </form>
-
-                {/* Resume via Session Code */}
-                <div className="border-t border-[#F3F1EA]/10 pt-5">
-                  <form onSubmit={handleResumeByCode} className="space-y-2.5">
-                    <p className="flex items-center gap-1.5 text-xs font-semibold text-[#F3F1EA]/75">
-                      <KeyRound className="h-3.5 w-3.5 text-[#D9B978]" />
-                      已有先前建立的探索檔案代碼？輸入代碼繼續探險：
-                    </p>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={resumeCodeInput}
-                        onChange={(e) => setResumeCodeInput(e.target.value.toUpperCase())}
-                        placeholder="輸入 6 碼代碼（例：FH9K2A）"
-                        maxLength={8}
-                        className="flex-1 rounded-xl border border-[#F3F1EA]/15 bg-[#101827] px-3.5 py-2.5 font-mono text-sm uppercase text-[#F3F1EA] placeholder:text-[#F3F1EA]/35 focus:border-[#D9B978] focus:outline-none"
-                      />
-                      <button
-                        type="submit"
-                        disabled={setupBusy || !resumeCodeInput.trim()}
-                        className="rounded-xl border border-[#D9B978]/45 bg-[#101827] px-4 py-2.5 text-xs font-bold text-[#D9B978] hover:bg-[#D9B978]/15 disabled:opacity-45"
-                      >
-                        載入進度
-                      </button>
-                    </div>
-                  </form>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setScreen("opening")}
+                  className="w-full text-sm text-[#F3F1EA]/65 hover:text-[#D9B978]"
+                >
+                  返回封面
+                </button>
               </div>
             </motion.section>
           )}
@@ -830,22 +587,16 @@ export default function FuhsingChroniclesApp() {
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center gap-1 rounded-full bg-[#D9B978]/15 px-3 py-1 text-xs font-semibold text-[#D9B978]">
-                        {session.mode === "team" ? (
-                          <Users className="h-3.5 w-3.5" />
-                        ) : (
-                          <User className="h-3.5 w-3.5" />
-                        )}
-                        {session.mode === "team" ? "組隊探索模式" : "單人探索模式"}
+                        <User className="h-3.5 w-3.5" />
+                        單機探索模式
                       </span>
                       <span className="rounded-full border border-[#F3F1EA]/15 bg-[#101827] px-3 py-1 font-mono text-xs text-[#F3F1EA]/80">
-                        檔案代碼：{session.sessionCode}
+                        進度儲存於此瀏覽器
                       </span>
                     </div>
 
                     <h1 className="font-serif text-2xl font-bold text-[#F3F1EA] sm:text-3xl">
-                      {session.mode === "team" && session.teamName
-                        ? `${session.teamName}・${session.playerName}`
-                        : `${session.playerName} 的復興檔案`}
+                      {session.playerName} 的復興檔案
                     </h1>
                     <p className="text-xs text-[#F3F1EA]/70">
                       建議以 50 分鐘漫步校園節奏進行探索（無倒數計時，請放心觀察與推理）
@@ -864,13 +615,13 @@ export default function FuhsingChroniclesApp() {
 
                     <button
                       type="button"
-                      disabled={!allEightDone && !settings.forceUnlockAll}
+                      disabled={!allEightDone}
                       onClick={() => {
                         setPuzzleFeedback(null);
                         setScreen(session.finalSolved ? "ending" : "final-puzzle");
                       }}
                       className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition ${
-                        allEightDone || settings.forceUnlockAll
+                        allEightDone
                           ? "bg-[#65C99A] text-[#101827] hover:bg-[#7AD6AA]"
                           : "cursor-not-allowed border border-[#F3F1EA]/15 bg-[#101827] text-[#F3F1EA]/45"
                       }`}
@@ -879,7 +630,7 @@ export default function FuhsingChroniclesApp() {
                         <>
                           <Sparkles className="h-4 w-4" /> 查看結局與成績單
                         </>
-                      ) : allEightDone || settings.forceUnlockAll ? (
+                      ) : allEightDone ? (
                         <>
                           <Sparkles className="h-4 w-4" /> 進入最終謎題
                         </>
@@ -891,6 +642,15 @@ export default function FuhsingChroniclesApp() {
                     </button>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSettings((current) => ({ ...current, historyMuseumOpen: !current.historyMuseumOpen }))}
+                  aria-pressed={!settings.historyMuseumOpen}
+                  className="mt-5 min-h-11 rounded-xl border border-[#D9B978]/25 bg-[#101827] px-4 py-2 text-left text-xs text-[#F3F1EA]/80 hover:border-[#D9B978]/60"
+                >
+                  情境設定：校史館目前{settings.historyMuseumOpen ? "開放" : "休館"}・點此切換，用於體驗 M04 替代檔案
+                </button>
 
                 {/* Progress Stats Row */}
                 <div className="mt-6 grid gap-3 sm:grid-cols-4">
@@ -1173,19 +933,6 @@ export default function FuhsingChroniclesApp() {
             setPuzzleFeedback(null);
             setScreen("final-puzzle");
           }}
-        />
-      )}
-
-      {/* SCREEN 12: ADMIN CONSOLE OVERLAY */}
-      {showAdmin && (
-        <AdminConsole
-          activeSession={session}
-          onClose={() => setShowAdmin(false)}
-          onRefreshGameData={async () => {
-            await loadBootstrap(session?.id ?? null);
-          }}
-          onDirectTestMission={handleDirectTestMission}
-          onResetCurrentSession={handleResetCurrentSession}
         />
       )}
 

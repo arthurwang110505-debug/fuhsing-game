@@ -1,234 +1,47 @@
-import { db } from "@/db";
-import {
-  gameSessions,
-  gameSettings,
-  missions,
-  type GameSessionRow,
-  type GameSettingsRow,
-  type MissionRow,
-} from "@/db/schema";
-import { asc, eq } from "drizzle-orm";
-import { FINAL_PUZZLE_DATA, SEED_MISSIONS } from "./seed-data";
+import type { GameSettings, PublicMission, SolvedMissionDetail } from "@/types/game";
+import { FINAL_PUZZLE_DATA, SEED_MISSIONS, type SeedMission } from "./seed-data";
 
-export interface PublicMission {
-  id: number;
-  code: string;
-  title: string;
-  subtitle: string;
-  locationName: string;
-  locationNote: string;
-  mapX: number;
-  mapY: number;
-  storyBackground: string;
-  safetyNotice: string;
-  puzzleType: MissionRow["puzzleType"];
-  promptText: string;
-  puzzlePayload: Record<string, unknown>;
-  hint1: string;
-  hint2: string;
-  sourceTitle: string;
-  sourceUrl: string;
-  fragmentName: string;
-  fragmentPoem: string;
-  fragmentSymbol: string;
-  defaultUnlocked: boolean;
-  // Note: explanation & clueSummary are only revealed in completion/review or when solved!
+/** Local-only game rules and seed data. No API, database, or server access is used. */
+export function getLocalMissions(): PublicMission[] {
+  return SEED_MISSIONS.map((mission) => ({ ...mission }));
 }
 
-export interface SolvedMissionDetail {
-  id: number;
-  explanation: string;
-  fragmentName: string;
-  fragmentPoem: string;
-  fragmentSymbol: string;
-  clueSummary: string;
-  sourceTitle: string;
-  sourceUrl: string;
+export function getLocalSettings(): GameSettings {
+  return { historyMuseumOpen: true };
 }
 
-let seededPromise: Promise<void> | null = null;
-
-export async function ensureSeeded(): Promise<void> {
-  if (!seededPromise) {
-    seededPromise = runSeed().catch((err) => {
-      seededPromise = null;
-      throw err;
-    });
-  }
-  return seededPromise;
-}
-
-async function runSeed(): Promise<void> {
-  const existingMissions = await db.select({ id: missions.id }).from(missions);
-  if (existingMissions.length === 0) {
-    for (const m of SEED_MISSIONS) {
-      await db
-        .insert(missions)
-        .values({
-          id: m.id,
-          code: m.code,
-          title: m.title,
-          subtitle: m.subtitle,
-          locationName: m.locationName,
-          locationNote: m.locationNote,
-          mapX: m.mapX,
-          mapY: m.mapY,
-          storyBackground: m.storyBackground,
-          safetyNotice: m.safetyNotice,
-          puzzleType: m.puzzleType,
-          promptText: m.promptText,
-          puzzlePayload: m.puzzlePayload,
-          correctAnswer: m.correctAnswer,
-          hint1: m.hint1,
-          hint2: m.hint2,
-          explanation: m.explanation,
-          sourceTitle: m.sourceTitle,
-          sourceUrl: m.sourceUrl,
-          fragmentName: m.fragmentName,
-          fragmentPoem: m.fragmentPoem,
-          fragmentSymbol: m.fragmentSymbol,
-          clueSummary: m.clueSummary,
-          defaultUnlocked: m.defaultUnlocked,
-        })
-        .onConflictDoNothing();
-    }
-  }
-
-  const existingSettings = await db
-    .select({ id: gameSettings.id })
-    .from(gameSettings)
-    .where(eq(gameSettings.id, 1));
-
-  if (existingSettings.length === 0) {
-    await db
-      .insert(gameSettings)
-      .values({
-        id: 1,
-        historyMuseumOpen: true,
-        forceUnlockAll: false,
-      })
-      .onConflictDoNothing();
-  }
-}
-
-export async function resetMissionsToDefault(): Promise<void> {
-  await ensureSeeded();
-  for (const m of SEED_MISSIONS) {
-    await db
-      .update(missions)
-      .set({
-        title: m.title,
-        subtitle: m.subtitle,
-        locationName: m.locationName,
-        locationNote: m.locationNote,
-        mapX: m.mapX,
-        mapY: m.mapY,
-        storyBackground: m.storyBackground,
-        safetyNotice: m.safetyNotice,
-        promptText: m.promptText,
-        puzzlePayload: m.puzzlePayload,
-        correctAnswer: m.correctAnswer,
-        hint1: m.hint1,
-        hint2: m.hint2,
-        explanation: m.explanation,
-        sourceTitle: m.sourceTitle,
-        sourceUrl: m.sourceUrl,
-        fragmentName: m.fragmentName,
-        fragmentPoem: m.fragmentPoem,
-        fragmentSymbol: m.fragmentSymbol,
-        clueSummary: m.clueSummary,
-        defaultUnlocked: m.defaultUnlocked,
-        updatedAt: new Date(),
-      })
-      .where(eq(missions.id, m.id));
-  }
-  await db
-    .update(gameSettings)
-    .set({
-      historyMuseumOpen: true,
-      forceUnlockAll: false,
-      updatedAt: new Date(),
-    })
-    .where(eq(gameSettings.id, 1));
-}
-
-export function sanitizeMissionForPlayer(m: MissionRow): PublicMission {
+export function extractSolvedDetail(mission: SeedMission): SolvedMissionDetail {
   return {
-    id: m.id,
-    code: m.code,
-    title: m.title,
-    subtitle: m.subtitle,
-    locationName: m.locationName,
-    locationNote: m.locationNote,
-    mapX: m.mapX,
-    mapY: m.mapY,
-    storyBackground: m.storyBackground,
-    safetyNotice: m.safetyNotice,
-    puzzleType: m.puzzleType,
-    promptText: m.promptText,
-    puzzlePayload: m.puzzlePayload,
-    // Hint text is intentionally omitted from bootstrap and fetched on demand.
-    hint1: "",
-    hint2: "",
-    sourceTitle: m.sourceTitle,
-    sourceUrl: m.sourceUrl,
-    fragmentName: m.fragmentName,
-    fragmentPoem: m.fragmentPoem,
-    fragmentSymbol: m.fragmentSymbol,
-    defaultUnlocked: m.defaultUnlocked,
-  };
-}
-
-export function extractSolvedDetail(m: MissionRow): SolvedMissionDetail {
-  return {
-    id: m.id,
-    explanation: m.explanation,
-    fragmentName: m.fragmentName,
-    fragmentPoem: m.fragmentPoem,
-    fragmentSymbol: m.fragmentSymbol,
-    clueSummary: m.clueSummary,
-    sourceTitle: m.sourceTitle,
-    sourceUrl: m.sourceUrl,
+    id: mission.id,
+    explanation: mission.explanation,
+    fragmentName: mission.fragmentName,
+    fragmentPoem: mission.fragmentPoem,
+    fragmentSymbol: mission.fragmentSymbol,
+    clueSummary: mission.clueSummary,
+    sourceTitle: mission.sourceTitle,
+    sourceUrl: mission.sourceUrl,
   };
 }
 
 export function computeUnlockedMissionIds(
-  missionList: MissionRow[],
-  completedMissions: number[],
-  settings: GameSettingsRow,
-  isAdminMode = false
+  missionList: Pick<SeedMission, "id" | "defaultUnlocked">[],
+  completedMissions: number[]
 ): number[] {
-  if (isAdminMode || settings.forceUnlockAll) {
-    return missionList.map((m) => m.id);
-  }
-  const completedSet = new Set(completedMissions);
-  const firstSevenDone = [1, 2, 3, 4, 5, 6, 7].every((id) => completedSet.has(id));
-
-  return missionList
-    .filter((m) => {
-      if (completedSet.has(m.id)) return true;
-      if (m.id === 8) {
-        // Mission 08 unlocks once Missions 1-7 are completed, unless admin explicitly marked defaultUnlocked = true
-        return firstSevenDone || m.defaultUnlocked;
-      }
-      return m.defaultUnlocked;
-    })
-    .map((m) => m.id);
+  const completed = new Set(completedMissions);
+  const firstSevenDone = [1, 2, 3, 4, 5, 6, 7].every((id) => completed.has(id));
+  return missionList.filter((mission) =>
+    completed.has(mission.id) ||
+    (mission.id === 8 ? firstSevenDone || mission.defaultUnlocked : mission.defaultUnlocked)
+  ).map((mission) => mission.id);
 }
 
-export function computeTotalScore(
-  completedMissions: number[],
-  finalSolved: boolean
-): number {
-  const uniqueCompleted = new Set(completedMissions.filter((id) => id >= 1 && id <= 8));
-  const missionPoints = uniqueCompleted.size * 10; // up to 80 pts
-  const finalPoints = finalSolved ? 10 : 0; // 10 pts
-  const completionBonus = uniqueCompleted.size === 8 && finalSolved ? 10 : 0; // 10 pts
-  return Math.min(100, missionPoints + finalPoints + completionBonus);
+export function computeTotalScore(completedMissions: number[], finalSolved: boolean): number {
+  const count = new Set(completedMissions.filter((id) => id >= 1 && id <= 8)).size;
+  return Math.min(100, count * 10 + (finalSolved ? 10 : 0) + (count === 8 && finalSolved ? 10 : 0));
 }
 
 export function gradeMissionAnswer(
-  mission: MissionRow,
+  mission: SeedMission,
   submission: unknown
 ): { isCorrect: boolean; feedback: string } {
   const expected = mission.correctAnswer;
@@ -352,7 +165,7 @@ export function gradeMissionAnswer(
     }
 
     default:
-      return { isCorrect: false, feedback: "未知題型，請通知管理員確認題庫設定。" };
+      return { isCorrect: false, feedback: "未知題型，請重新載入遊戲資料後再試。" };
   }
 }
 
@@ -371,50 +184,4 @@ export function gradeFinalSeal(order: unknown): { isCorrect: boolean; feedback: 
     isCorrect: false,
     feedback: `已經排對 ${matches} 句了！試著依「自己 → 同學 → 社會 → 世界」的同心圓順序再調整看看！`,
   };
-}
-
-export async function getGameBootstrapData(sessionId?: string | null) {
-  await ensureSeeded();
-
-  const missionList = await db.select().from(missions).orderBy(asc(missions.id));
-  const [settingsRow] = await db.select().from(gameSettings).where(eq(gameSettings.id, 1));
-  const settings = settingsRow ?? {
-    id: 1,
-    historyMuseumOpen: true,
-    forceUnlockAll: false,
-    updatedAt: new Date(),
-  };
-
-  let session: GameSessionRow | null = null;
-  if (sessionId) {
-    const rows = await db
-      .select()
-      .from(gameSessions)
-      .where(eq(gameSessions.id, sessionId));
-    session = rows[0] ?? null;
-  }
-
-  const completedSet = new Set(session?.completedMissions ?? []);
-  const solvedDetails: Record<number, SolvedMissionDetail> = {};
-  for (const m of missionList) {
-    if (completedSet.has(m.id)) {
-      solvedDetails[m.id] = extractSolvedDetail(m);
-    }
-  }
-
-  return {
-    missions: missionList.map(sanitizeMissionForPlayer),
-    settings,
-    session,
-    solvedDetails,
-    unlockedIds: computeUnlockedMissionIds(
-      missionList,
-      session?.completedMissions ?? [],
-      settings
-    ),
-  };
-}
-
-export function getAdminPasscode(): string {
-  return process.env.ADMIN_PASSCODE || "";
 }

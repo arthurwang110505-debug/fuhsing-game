@@ -1,4 +1,4 @@
-import type { PuzzleType } from "@/db/schema";
+import type { PuzzleType } from "@/types/game";
 
 export interface SeedMission {
   id: number;

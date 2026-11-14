@@ -860,7 +860,7 @@ export default function PuzzlePlayfield({
                           <span>{detail.clueSummary}</span>
                         ) : (
                           <span className="text-[#F3F1EA]/45">
-                            線索 0{id}：尚未取得（若在管理員測試模式，可由管理員控制台直接解鎖體驗）
+                            線索 0{id}：尚未取得，完成前置關卡後即可回顧。
                           </span>
                         )}
                       </div>
