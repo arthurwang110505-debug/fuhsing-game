@@ -219,107 +219,141 @@ export default function CampusMapSVG({
             <rect width="640" height="990" fill="url(#mapDots)" />
             <rect x="22" y="36" width="596" height="922" rx="26" fill="#E9EFFA" stroke="#C9D6EC" strokeWidth="2" filter="url(#mapShadow)" />
 
-            {/* Blue running track along the west side, beside the bell tower */}
-            <rect x="40" y="110" width="118" height="760" rx="59" fill="url(#trackGrad)" />
-            <rect x="49" y="119" width="100" height="742" rx="50" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
-            <rect x="55" y="125" width="88" height="730" rx="44" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
-            <rect x="61" y="131" width="76" height="718" rx="38" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
-            <rect x="67" y="137" width="64" height="706" rx="32" fill="#5FA268" stroke="#FFFFFF" strokeWidth="2" opacity=".95" />
-            <text x="99" y="470" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="6" opacity=".95">藍色跑道</text>
-
-            {/* Qinxue Building (top) */}
-            <rect x="172" y="50" width="352" height="16" rx="8" fill="#1B2F5C" />
-            <rect x="180" y="62" width="336" height="130" rx="12" fill="url(#bldGrad)" />
+            {/* West column: Chengxian Building (vertical) */}
+            <rect x="28" y="108" width="110" height="316" rx="10" fill="url(#bldGrad)" />
             <g fill="#93ACD9" opacity=".85">
-              {[0, 1].map((row) =>
-                [0, 1, 2, 3, 4, 5, 6, 7].map((col) => (
-                  <rect key={`q-${row}-${col}`} x={198 + col * 40} y={92 + row * 48} width="22" height="26" rx="3" />
+              {[0, 1, 2, 3, 4].map((row) =>
+                [0, 1].map((col) => (
+                  <rect key={`c-${row}-${col}`} x={76 + col * 28} y={132 + row * 52} width="22" height="26" rx="3" />
                 ))
               )}
             </g>
-            <text x="348" y="182" textAnchor="middle" fill="#FFFFFF" fontSize="26" fontWeight="700" letterSpacing="3">勤學樓</text>
+            <text x="52" y="148" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="3">成賢樓</text>
 
-            {/* Small garden courtyard */}
-            <rect x="186" y="222" width="310" height="132" rx="48" fill="url(#gardenGrad)" />
+            {/* West lawn strip */}
+            <rect x="28" y="446" width="110" height="252" rx="44" fill="url(#gardenGrad)" opacity=".9" />
             <g fill="#2E7D52">
-              <circle cx="226" cy="262" r="15" />
-              <circle cx="270" cy="300" r="19" />
-              <circle cx="330" cy="258" r="16" />
-              <circle cx="392" cy="302" r="20" />
-              <circle cx="452" cy="262" r="14" />
+              <circle cx="54" cy="486" r="14" />
+              <circle cx="98" cy="502" r="17" />
             </g>
             <g fill="#E5879B">
-              <circle cx="242" cy="308" r="3" />
-              <circle cx="356" cy="312" r="3" />
-              <circle cx="422" cy="256" r="3" />
-              <circle cx="472" cy="306" r="3" />
+              <circle cx="46" cy="548" r="3" />
+              <circle cx="72" cy="566" r="3" />
+              <circle cx="102" cy="552" r="3" />
+              <circle cx="58" cy="606" r="3" />
+              <circle cx="90" cy="622" r="3" />
+              <circle cx="116" cy="600" r="3" />
             </g>
-            <text x="283" y="262" textAnchor="middle" fill="#FFFFFF" fontSize="22" fontWeight="600" letterSpacing="2">小花園</text>
+            <rect x="79" y="698" width="12" height="26" rx="5" fill="#DDE5F2" />
 
-            {/* Chengxian Building + inner courtyard */}
-            <rect x="186" y="382" width="164" height="116" rx="10" fill="url(#bldGrad)" />
+            {/* Bell tower plaza (west column, south) */}
+            <rect x="28" y="722" width="114" height="226" rx="18" fill="#E3E9F5" />
+            <rect x="58" y="798" width="52" height="120" rx="6" fill="#B4553F" />
+            <rect x="52" y="794" width="64" height="12" rx="5" fill="#8E3E2E" />
+            <path d="M64 794 L84 766 L104 794 Z" fill="#8E3E2E" />
+            <rect x="70" y="804" width="28" height="26" rx="11" fill="#8E3E2E" />
+            <circle cx="84" cy="817" r="7" fill="#E3B505" />
+            <circle cx="84" cy="856" r="10" fill="#F7E9C8" stroke="#8E3E2E" strokeWidth="2.5" />
+            <path d="M84 850 V856 L89 859" stroke="#213155" strokeWidth="2" fill="none" strokeLinecap="round" />
+            <rect x="38" y="900" width="32" height="12" rx="5" fill="#D9A500" opacity=".85" />
+            <text x="85" y="940" textAnchor="middle" fill="#213155" fontSize="20" fontWeight="700" letterSpacing="3">鐘樓</text>
+
+            {/* Blue running track through the middle, west of the main campus */}
+            <rect x="152" y="100" width="110" height="780" rx="55" fill="url(#trackGrad)" />
+            <rect x="161" y="109" width="92" height="762" rx="46" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
+            <rect x="167" y="115" width="80" height="750" rx="40" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
+            <rect x="173" y="121" width="68" height="738" rx="34" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
+            <rect x="178" y="126" width="58" height="728" rx="29" fill="#5FA268" stroke="#FFFFFF" strokeWidth="2" opacity=".95" />
+            <path d="M152 856 V872 M152 108 V124" stroke="#FFFFFF" strokeWidth="3" opacity=".7" />
+            <text x="207" y="452" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="6" opacity=".95">藍色跑道</text>
+
+            {/* Qinxue Building (top of the main campus) */}
+            <rect x="268" y="52" width="262" height="16" rx="8" fill="#1B2F5C" />
+            <rect x="276" y="62" width="246" height="128" rx="12" fill="url(#bldGrad)" />
             <g fill="#93ACD9" opacity=".85">
-              {[0, 1, 2].map((col) => (
-                <rect key={`c-${col}`} x={206 + col * 44} y={402} width="24" height="18" rx="3" />
-              ))}
+              {[0, 1].map((row) =>
+                [0, 1, 2, 3, 4, 5, 6, 7].map((col) => (
+                  <rect key={`q-${row}-${col}`} x={290 + col * 28} y={88 + row * 32} width="20" height="22" rx="3" />
+                ))
+              )}
             </g>
-            <text x="268" y="452" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" letterSpacing="2">成賢樓</text>
-            <rect x="370" y="382" width="130" height="116" rx="18" fill="#B7D8BE" />
+            <text x="399" y="176" textAnchor="middle" fill="#FFFFFF" fontSize="24" fontWeight="700" letterSpacing="3">勤學樓</text>
+
+            {/* Small garden courtyard */}
+            <rect x="276" y="216" width="246" height="130" rx="44" fill="url(#gardenGrad)" />
             <g fill="#2E7D52">
-              <circle cx="410" cy="420" r="14" />
-              <circle cx="462" cy="452" r="17" />
+              <circle cx="318" cy="288" r="14" />
+              <circle cx="352" cy="278" r="18" />
+              <circle cx="386" cy="290" r="15" />
+              <circle cx="420" cy="280" r="18" />
+              <circle cx="454" cy="288" r="14" />
             </g>
+            <g fill="#E5879B">
+              <circle cx="300" cy="318" r="3" />
+              <circle cx="368" cy="322" r="3" />
+              <circle cx="436" cy="314" r="3" />
+              <circle cx="486" cy="320" r="3" />
+            </g>
+            <text x="360" y="252" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">小花園</text>
 
             {/* School playgrounds */}
-            <rect x="186" y="520" width="314" height="140" rx="28" fill="url(#courtGrad)" />
-            <path d="M343 534 V646" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
-            <circle cx="343" cy="590" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
-            <text x="283" y="558" textAnchor="middle" fill="#FFFFFF" fontSize="22" fontWeight="600" letterSpacing="2">小學操場</text>
-            <rect x="186" y="682" width="314" height="134" rx="28" fill="url(#courtGrad)" />
-            <path d="M343 696 V802" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
-            <circle cx="343" cy="749" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
-            <text x="283" y="718" textAnchor="middle" fill="#FFFFFF" fontSize="22" fontWeight="600" letterSpacing="2">中學操場</text>
+            <rect x="276" y="372" width="246" height="140" rx="28" fill="url(#courtGrad)" />
+            <path d="M399 384 V500" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <circle cx="399" cy="442" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <text x="347" y="412" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">小學操場</text>
+            <rect x="276" y="538" width="246" height="140" rx="28" fill="url(#courtGrad)" />
+            <path d="M399 550 V666" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <circle cx="399" cy="608" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <text x="347" y="578" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">中學操場</text>
+
+            {/* Quiet courtyard with a bench (finish point) */}
+            <rect x="276" y="704" width="246" height="146" rx="36" fill="#B7D8BE" opacity=".55" />
+            <rect x="330" y="762" width="60" height="20" rx="4" fill="#C08552" />
+            <rect x="330" y="782" width="60" height="8" rx="3" fill="#A9713F" />
+            <rect x="338" y="790" width="6" height="16" rx="2" fill="#A9713F" />
+            <rect x="376" y="790" width="6" height="16" rx="2" fill="#A9713F" />
+            <g fill="#2E7D52">
+              <circle cx="430" cy="768" r="14" />
+              <circle cx="462" cy="792" r="17" />
+              <circle cx="494" cy="768" r="13" />
+            </g>
 
             {/* East wing: Shensi Building, History Museum, Administration */}
-            <rect x="516" y="62" width="86" height="340" rx="10" fill="url(#bldGrad)" />
+            <rect x="534" y="62" width="84" height="336" rx="10" fill="url(#bldGrad)" />
             <g fill="#93ACD9" opacity=".85">
               {[0, 1, 2, 3, 4].map((row) => (
-                <rect key={`s-${row}`} x={556} y={82 + row * 58} width="34" height="26" rx="3" />
+                <rect key={`s-${row}`} x={572} y={92 + row * 56} width="34" height="26" rx="3" />
               ))}
             </g>
-            <text x="531" y="130" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="700" writingMode="tb" letterSpacing="4">慎思樓</text>
-            <rect x="516" y="430" width="86" height="120" rx="10" fill="url(#bldAlt)" />
-            <rect x="516" y="430" width="86" height="12" rx="6" fill="#E3B505" />
-            <circle cx="559" cy="458" r="10" fill="none" stroke="#E3B505" strokeWidth="2.5" />
-            <text x="559" y="538" textAnchor="middle" fill="#FFFFFF" fontSize="16" fontWeight="700" letterSpacing="2">校史館</text>
-            <rect x="516" y="580" width="86" height="270" rx="10" fill="url(#bldGrad)" />
+            <text x="549" y="130" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="3">慎思樓</text>
+            <rect x="534" y="424" width="84" height="120" rx="10" fill="url(#bldAlt)" />
+            <rect x="534" y="424" width="84" height="12" rx="6" fill="#E3B505" />
+            <circle cx="576" cy="458" r="10" fill="none" stroke="#E3B505" strokeWidth="2.5" />
+            <text x="576" y="532" textAnchor="middle" fill="#FFFFFF" fontSize="15" fontWeight="700" letterSpacing="1">校史館</text>
+            <rect x="534" y="570" width="84" height="280" rx="10" fill="url(#bldGrad)" />
             <g fill="#93ACD9" opacity=".85">
               {[0, 1, 2, 3].map((row) => (
-                <rect key={`a-${row}`} x={556} y={616 + row * 52} width="34" height="24" rx="3" />
+                <rect key={`a-${row}`} x={572} y={616 + row * 52} width="34" height="24" rx="3" />
               ))}
             </g>
-            <text x="531" y="622" textAnchor="middle" fill="#FFFFFF" fontSize="18" fontWeight="700" writingMode="tb" letterSpacing="3">行政處室</text>
+            <text x="549" y="612" textAnchor="middle" fill="#FFFFFF" fontSize="17" fontWeight="700" writingMode="tb" letterSpacing="3">行政處室</text>
 
-            {/* Bell tower beside the south end of the track */}
-            <rect x="176" y="832" width="152" height="116" rx="18" fill="#E3E9F5" />
-            <rect x="222" y="846" width="52" height="72" rx="6" fill="#B4553F" />
-            <rect x="216" y="842" width="64" height="12" rx="5" fill="#8E3E2E" />
-            <path d="M228 842 L248 822 L268 842 Z" fill="#8E3E2E" />
-            <rect x="234" y="852" width="28" height="26" rx="11" fill="#8E3E2E" />
-            <circle cx="248" cy="865" r="7" fill="#E3B505" />
-            <circle cx="248" cy="896" r="9" fill="#F7E9C8" stroke="#8E3E2E" strokeWidth="2.5" />
-            <path d="M248 891 V896 L252 899" stroke="#213155" strokeWidth="2" fill="none" strokeLinecap="round" />
-            <rect x="188" y="900" width="32" height="12" rx="5" fill="#D9A500" opacity=".85" />
-            <text x="248" y="942" textAnchor="middle" fill="#213155" fontSize="20" fontWeight="700" letterSpacing="3">鐘樓</text>
+            {/* Path from the bell plaza toward the south gate */}
+            <rect x="142" y="896" width="202" height="8" rx="4" fill="#DDE5F2" />
 
             {/* South gate, guard post and the golden front road */}
-            <rect x="294" y="882" width="84" height="12" rx="4" fill="#223B6E" />
-            <rect x="298" y="894" width="14" height="48" rx="4" fill="#223B6E" />
-            <rect x="360" y="894" width="14" height="48" rx="4" fill="#223B6E" />
-            <rect x="398" y="902" width="42" height="40" rx="5" fill="url(#bldAlt)" />
-            <rect x="406" y="912" width="10" height="10" rx="2" fill="#93ACD9" />
-            <rect x="422" y="912" width="10" height="10" rx="2" fill="#93ACD9" />
-            <rect x="452" y="912" width="34" height="12" rx="5" fill="#D9A500" opacity=".85" />
+            <rect x="348" y="882" width="84" height="12" rx="4" fill="#223B6E" />
+            <rect x="352" y="894" width="14" height="48" rx="4" fill="#223B6E" />
+            <rect x="414" y="894" width="14" height="48" rx="4" fill="#223B6E" />
+            <rect x="446" y="902" width="42" height="40" rx="5" fill="url(#bldAlt)" />
+            <rect x="454" y="912" width="10" height="10" rx="2" fill="#93ACD9" />
+            <rect x="470" y="912" width="10" height="10" rx="2" fill="#93ACD9" />
+            <rect x="306" y="912" width="34" height="12" rx="5" fill="#D9A500" opacity=".85" />
+            <g fill="#2E7D52">
+              <circle cx="176" cy="912" r="13" />
+              <circle cx="232" cy="918" r="15" />
+              <circle cx="546" cy="908" r="13" />
+            </g>
             <path d="M30 952 H610" fill="none" stroke="#D9A500" strokeWidth="6" strokeLinecap="round" />
 
             {/* Compact numbered mission markers */}

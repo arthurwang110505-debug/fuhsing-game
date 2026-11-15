@@ -504,7 +504,7 @@ export default function FuhsingChroniclesApp() {
               <Flame className="h-4 w-4" />
             </div>
             <div>
-              <p className="font-serif text-sm font-bold tracking-wide text-[#213155] sm:text-base">
+              <p className="font-hand text-sm font-bold tracking-wide text-[#213155] sm:text-base">
                 復興檔案：時光的邀請
               </p>
               <p className="hidden text-[10px] tracking-[0.18em] text-[#103FA0] sm:block">
@@ -614,7 +614,7 @@ export default function FuhsingChroniclesApp() {
                       <p className="font-display text-xs uppercase tracking-[0.26em] text-[#103FA0]">
                         FUHSING CHRONICLES : THE INVITATION THROUGH TIME
                       </p>
-                      <h1 className="font-serif text-3xl font-bold leading-tight text-[#213155] sm:text-4xl">
+                      <h1 className="font-hand text-3xl font-bold leading-tight text-[#213155] sm:text-4xl">
                         復興檔案
                         <span className="mt-1 block text-[#D21E14]">時光的邀請</span>
                       </h1>
@@ -700,7 +700,7 @@ export default function FuhsingChroniclesApp() {
                 </div>
 
                 <div className="p-6 sm:p-8 space-y-5">
-                  <div className="space-y-3.5 text-base leading-relaxed text-[#213155]/90">
+                  <div className="space-y-3.5 font-hand text-base leading-relaxed text-[#213155]/90">
                     <p>
                       某一天，復興實中的檔案室裡出現了一封蓋著梅花與火炬蠟印的舊信封。信紙上工整地記錄著這座校園從民國三十五年起步至今的故事，以及八個散落在校園各個角落、等待被重新看見的秘密。
                     </p>

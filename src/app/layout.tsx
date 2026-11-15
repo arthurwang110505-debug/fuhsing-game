@@ -19,6 +19,16 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh-Hant">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* 手寫字體：霞鶩文楷 LXGW WenKai TC（離線時自動降級為系統手寫／楷體字） */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font -- app router root layout 全站生效；本專案僅單一路由 */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-screen bg-[#F2F6FD] text-[#213155] font-sans antialiased selection:bg-[#F9CF00]/50 selection:text-[#213155]">
         {children}
       </body>

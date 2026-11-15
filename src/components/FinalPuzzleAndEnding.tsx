@@ -98,7 +98,7 @@ export function FinalPuzzleView({
 
         {/* Torch Spirit Ordering Letter */}
         <div className="rounded-2xl border border-[#103FA0]/35 bg-[#EAF0FA] p-5 space-y-4">
-          <p className="font-serif text-base font-bold text-[#103FA0]">
+          <p className="font-hand text-lg font-bold text-[#103FA0]">
             {meta.openingLine}
           </p>
 
@@ -115,7 +115,7 @@ export function FinalPuzzleView({
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#F9CF00] font-mono text-xs font-bold text-[#213155]">
                       {idx + 1}
                     </span>
-                    <span className="font-serif text-base font-semibold text-[#213155]">
+                    <span className="font-hand text-base font-semibold text-[#213155]">
                       {item.text}
                     </span>
                   </div>
@@ -144,7 +144,7 @@ export function FinalPuzzleView({
             })}
           </div>
 
-          <p className="font-serif text-sm italic text-[#103FA0]/90 text-right">
+          <p className="font-hand text-base italic text-[#103FA0]/90 text-right">
             {meta.closingLine}
           </p>
         </div>
@@ -283,12 +283,12 @@ export function EndingScreenView({
         <h2 className="font-serif text-xl font-bold text-[#103FA0]">
           寫給每一位復興探索員的回信
         </h2>
-        <div className="space-y-4 text-base leading-relaxed text-[#213155]/90">
+        <div className="space-y-4 font-hand text-base leading-relaxed text-[#213155]/90">
           {endingStory.map((para, idx) => (
             <p key={idx}>{para}</p>
           ))}
         </div>
-        <div className="mt-4 rounded-2xl border border-[#103FA0]/30 bg-[#EAF0FA] p-4 text-center font-serif text-sm text-[#103FA0]">
+        <div className="mt-4 rounded-2xl border border-[#103FA0]/30 bg-[#EAF0FA] p-4 text-center font-hand text-base text-[#103FA0]">
           「我們是復興的小火炬，是世上的光；把責任與榮譽給自己，把友誼與溫暖給同學，把服務與奉獻給社會，把愛與關懷給世界。」
         </div>
       </div>
@@ -315,7 +315,7 @@ export function EndingScreenView({
               <p className="font-serif text-base font-bold text-[#213155]">
                 {m.fragmentName}
               </p>
-              <p className="text-xs leading-relaxed text-[#213155]/70">
+              <p className="font-hand text-sm leading-relaxed text-[#213155]/70">
                 {m.fragmentPoem}
               </p>
             </div>

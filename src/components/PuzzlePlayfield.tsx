@@ -180,7 +180,7 @@ export default function PuzzlePlayfield({
             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#103FA0]">
               檔案故事背景
             </h2>
-            <p className="text-base leading-relaxed text-[#213155]/90">
+            <p className="font-hand text-base leading-relaxed text-[#213155]/90">
               {mission.storyBackground}
             </p>
           </div>
