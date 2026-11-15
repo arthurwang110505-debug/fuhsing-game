@@ -17,12 +17,15 @@
     "react-dom": "19.2.6"
   },
   "devDependencies": {
+    "@expo-google-fonts/lxgw-wenkai-tc": "^0.4.3",
     "@tailwindcss/postcss": "4.1.17",
     "@types/node": "22.19.15",
+    "@types/pdfkit": "^0.17.7",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.4",
     "eslint-config-next": "^16.4.6",
+    "pdfkit": "^0.20.2",
     "postcss": "^8.5.32",
     "tailwindcss": "4.1.17",
     "tsx": "^4.23.15",

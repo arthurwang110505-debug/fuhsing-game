@@ -179,7 +179,7 @@ export default function CampusMapSVG({
             viewBox="0 0 640 990"
             className="block h-auto w-full select-none"
             role="img"
-            aria-label="復興校園平面示意圖，含藍色跑道、鐘樓、勤學樓、成賢樓、慎思樓、校史館、小花園、操場與行政處室"
+            aria-label="復興校園平面示意圖，含直線藍色跑道、鐘樓、勤學樓、成賢樓、慎思樓、校史館、小花園、操場、校門花圃與行政處室；右側慎思樓、校史館與行政處室三棟相連"
           >
             <defs>
               <pattern id="mapDots" width="12" height="12" patternUnits="userSpaceOnUse">
@@ -258,13 +258,16 @@ export default function CampusMapSVG({
             <rect x="38" y="900" width="32" height="12" rx="5" fill="#D9A500" opacity=".85" />
             <text x="85" y="940" textAnchor="middle" fill="#213155" fontSize="20" fontWeight="700" letterSpacing="3">鐘樓</text>
 
-            {/* Blue running track through the middle, west of the main campus */}
-            <rect x="152" y="100" width="110" height="780" rx="55" fill="url(#trackGrad)" />
-            <rect x="161" y="109" width="92" height="762" rx="46" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
-            <rect x="167" y="115" width="80" height="750" rx="40" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
-            <rect x="173" y="121" width="68" height="738" rx="34" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
-            <rect x="178" y="126" width="58" height="728" rx="29" fill="#5FA268" stroke="#FFFFFF" strokeWidth="2" opacity=".95" />
-            <path d="M152 856 V872 M152 108 V124" stroke="#FFFFFF" strokeWidth="3" opacity=".7" />
+            {/* Straight blue running track（直線跑道，不是環形跑道） */}
+            <rect x="152" y="100" width="110" height="780" rx="6" fill="url(#trackGrad)" />
+            <g stroke="#FFFFFF" strokeWidth="2" opacity=".5">
+              <line x1="174" y1="100" x2="174" y2="880" />
+              <line x1="196" y1="100" x2="196" y2="880" />
+              <line x1="218" y1="100" x2="218" y2="880" />
+              <line x1="240" y1="100" x2="240" y2="880" />
+            </g>
+            <line x1="152" y1="108" x2="262" y2="108" stroke="#FFFFFF" strokeWidth="3" opacity=".75" />
+            <line x1="152" y1="872" x2="262" y2="872" stroke="#FFFFFF" strokeWidth="4" opacity=".9" />
             <text x="207" y="452" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="6" opacity=".95">藍色跑道</text>
 
             {/* Qinxue Building (top of the main campus) */}
@@ -301,45 +304,58 @@ export default function CampusMapSVG({
             <path d="M399 384 V500" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
             <circle cx="399" cy="442" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
             <text x="347" y="412" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">小學操場</text>
-            <rect x="276" y="538" width="246" height="140" rx="28" fill="url(#courtGrad)" />
-            <path d="M399 550 V666" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
-            <circle cx="399" cy="608" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
-            <text x="347" y="578" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">中學操場</text>
+            <rect x="276" y="538" width="246" height="312" rx="28" fill="url(#courtGrad)" />
+            <path d="M399 552 V836" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <circle cx="399" cy="694" r="44" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <circle cx="399" cy="694" r="4" fill="#FFFFFF" opacity=".45" />
+            <text x="347" y="582" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">中學操場</text>
 
-            {/* Quiet courtyard with a bench (finish point) */}
-            <rect x="276" y="704" width="246" height="146" rx="36" fill="#B7D8BE" opacity=".55" />
-            <rect x="330" y="762" width="60" height="20" rx="4" fill="#C08552" />
-            <rect x="330" y="782" width="60" height="8" rx="3" fill="#A9713F" />
-            <rect x="338" y="790" width="6" height="16" rx="2" fill="#A9713F" />
-            <rect x="376" y="790" width="6" height="16" rx="2" fill="#A9713F" />
-            <g fill="#2E7D52">
-              <circle cx="430" cy="768" r="14" />
-              <circle cx="462" cy="792" r="17" />
-              <circle cx="494" cy="768" r="13" />
-            </g>
 
-            {/* East wing: Shensi Building, History Museum, Administration */}
-            <rect x="534" y="62" width="84" height="336" rx="10" fill="url(#bldGrad)" />
+            {/* East wing: 慎思樓・校史館・行政處室 — 三棟連成一體（共用牆面，無縫連接） */}
+            <rect x="530" y="58" width="92" height="800" rx="12" fill="url(#bldGrad)" />
+            <rect x="530" y="58" width="92" height="800" rx="12" fill="none" stroke="#1B2F5C" strokeWidth="2" opacity=".45" />
+
+            {/* 慎思樓（北段） */}
             <g fill="#93ACD9" opacity=".85">
               {[0, 1, 2, 3, 4].map((row) => (
-                <rect key={`s-${row}`} x={572} y={92 + row * 56} width="34" height="26" rx="3" />
+                <rect key={`s-${row}`} x={559} y={96 + row * 60} width="34" height="26" rx="3" />
               ))}
             </g>
-            <text x="549" y="130" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="3">慎思樓</text>
-            <rect x="534" y="424" width="84" height="120" rx="10" fill="url(#bldAlt)" />
-            <rect x="534" y="424" width="84" height="12" rx="6" fill="#E3B505" />
-            <circle cx="576" cy="458" r="10" fill="none" stroke="#E3B505" strokeWidth="2.5" />
-            <text x="576" y="532" textAnchor="middle" fill="#FFFFFF" fontSize="15" fontWeight="700" letterSpacing="1">校史館</text>
-            <rect x="534" y="570" width="84" height="280" rx="10" fill="url(#bldGrad)" />
+            <text x="547" y="130" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="3">慎思樓</text>
+
+            {/* 校史館（中段，與前後棟共用牆面） */}
+            <rect x="530" y="424" width="92" height="146" fill="url(#bldAlt)" />
+            <rect x="530" y="424" width="92" height="10" fill="#E3B505" />
+            <circle cx="576" cy="468" r="10" fill="none" stroke="#E3B505" strokeWidth="2.5" />
+            <text x="576" y="540" textAnchor="middle" fill="#FFFFFF" fontSize="15" fontWeight="700" letterSpacing="1">校史館</text>
+
+            {/* 行政處室（南段） */}
             <g fill="#93ACD9" opacity=".85">
               {[0, 1, 2, 3].map((row) => (
-                <rect key={`a-${row}`} x={572} y={616 + row * 52} width="34" height="24" rx="3" />
+                <rect key={`a-${row}`} x={559} y={622 + row * 54} width="34" height="24" rx="3" />
               ))}
             </g>
-            <text x="549" y="612" textAnchor="middle" fill="#FFFFFF" fontSize="17" fontWeight="700" writingMode="tb" letterSpacing="3">行政處室</text>
+            <text x="547" y="612" textAnchor="middle" fill="#FFFFFF" fontSize="17" fontWeight="700" writingMode="tb" letterSpacing="3">行政處室</text>
+
+            {/* 棟與棟之間的共用牆線 */}
+            <path d="M530 424 H622 M530 570 H622" stroke="#1B2F5C" strokeWidth="2" opacity=".35" />
 
             {/* Path from the bell plaza toward the south gate */}
             <rect x="142" y="896" width="202" height="8" rx="4" fill="#DDE5F2" />
+
+            {/* Small flower bed right inside the main gate（校門進去的小花圃） */}
+            <rect x="344" y="848" width="94" height="32" rx="16" fill="url(#gardenGrad)" stroke="#FFFFFF" strokeWidth="1.5" opacity=".96" />
+            <g fill="#2E7D52">
+              <circle cx="356" cy="864" r="6" />
+              <circle cx="426" cy="864" r="6" />
+            </g>
+            <g fill="#E5879B">
+              <circle cx="374" cy="857" r="2.6" />
+              <circle cx="374" cy="872" r="2.6" />
+              <circle cx="408" cy="857" r="2.6" />
+              <circle cx="415" cy="872" r="2.6" />
+            </g>
+            <text x="396" y="869" textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="700" letterSpacing="1" opacity=".95">花圃</text>
 
             {/* South gate, guard post and the golden front road */}
             <rect x="348" y="882" width="84" height="12" rx="4" fill="#223B6E" />

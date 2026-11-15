@@ -7,7 +7,8 @@ import type {
   GameScreen,
   GameSession,
   GameSettings,
-  OfficialSourceItem,
+  HintStage,
+  PrintableResource,
   PlayMode,
   PublicMission,
   SolvedMissionDetail,
@@ -18,11 +19,14 @@ import PuzzlePlayfield from "./PuzzlePlayfield";
 import MissionCompleteModal, { FragmentSymbolIcon } from "./MissionCompleteModal";
 import { EndingScreenView, FinalPuzzleView } from "./FinalPuzzleAndEnding";
 import { AuthScreen, TeamLobbyScreen } from "./CloudPanels";
-import { FINAL_PUZZLE_DATA, OFFICIAL_SOURCES, SEED_MISSIONS } from "@/lib/seed-data";
+import { FINAL_PUZZLE_DATA, PRINTABLE_RESOURCES, SEED_MISSIONS } from "@/lib/seed-data";
 import {
+  TIME_LIMIT_SECONDS,
   computeTotalScore,
   computeUnlockedMissionIds,
+  remainingSeconds as computeRemainingSeconds,
   extractSolvedDetail,
+  getHintText,
   getLocalMissions,
   getLocalSettings,
   gradeFinalSeal,
@@ -83,7 +87,7 @@ export default function FuhsingChroniclesApp() {
   const [settings, setSettings] = useState<GameSettings>(() => getLocalSettings());
   const [session, setSession] = useState<GameSession | null>(null);
   const [solvedDetails, setSolvedDetails] = useState<Record<number, SolvedMissionDetail>>({});
-  const [officialSources] = useState<OfficialSourceItem[]>(OFFICIAL_SOURCES);
+  const [printableResources] = useState<PrintableResource[]>(PRINTABLE_RESOURCES);
   const [finalPuzzleMeta] = useState<FinalPuzzleMeta>(FINAL_PUZZLE_DATA);
   const [activeMissionId, setActiveMissionId] = useState<number>(1);
   const [justSolvedModal, setJustSolvedModal] = useState<{
@@ -99,9 +103,10 @@ export default function FuhsingChroniclesApp() {
   } | null>(null);
   const [revealedHints, setRevealedHints] = useState<{
     missionId: number;
-    hints: Partial<Record<1 | 2, string>>;
+    hints: Partial<Record<HintStage, string>>;
   }>({ missionId: 0, hints: {} });
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [overtimeNoticeDismissed, setOvertimeNoticeDismissed] = useState(false);
   const [showSourcesModal, setShowSourcesModal] = useState(false);
   const [endingStory, setEndingStory] = useState<string[]>(FINAL_PUZZLE_DATA.endingStory);
 
@@ -116,6 +121,8 @@ export default function FuhsingChroniclesApp() {
 
   const elapsedRef = useRef(elapsedSeconds);
   const sessionRef = useRef(session);
+  const remainingSeconds = computeRemainingSeconds(elapsedSeconds);
+  const isOvertime = elapsedSeconds >= TIME_LIMIT_SECONDS;
   useEffect(() => {
     elapsedRef.current = elapsedSeconds;
   }, [elapsedSeconds]);
@@ -398,7 +405,7 @@ export default function FuhsingChroniclesApp() {
     setScreen("mission-detail");
   };
 
-  const handleOpenHint = (stage: 1 | 2) => {
+  const handleOpenHint = (stage: HintStage) => {
     if (!session || !activeMission) return;
     const source = SEED_MISSIONS.find((mission) => mission.id === activeMission.id);
     if (!source) return;
@@ -414,7 +421,10 @@ export default function FuhsingChroniclesApp() {
     });
     setRevealedHints((previous) => ({
       missionId: activeMission.id,
-      hints: { ...(previous.missionId === activeMission.id ? previous.hints : {}), [stage]: stage === 1 ? source.hint1 : source.hint2 },
+      hints: {
+        ...(previous.missionId === activeMission.id ? previous.hints : {}),
+        [stage]: getHintText(source, stage),
+      },
     }));
   };
 
@@ -521,9 +531,16 @@ export default function FuhsingChroniclesApp() {
           <div className="flex items-center gap-2">
             {session && (
               <div className="hidden items-center gap-3 rounded-xl border border-[#103FA0]/25 bg-[#EAF0FA] px-3 py-1.5 text-xs md:flex">
-                <span className="inline-flex items-center gap-1 text-[#103FA0]">
+                <span
+                  className={`inline-flex items-center gap-1 ${
+                    isOvertime ? "text-[#D21E14]" : remainingSeconds <= 300 ? "text-[#B98A00]" : "text-[#103FA0]"
+                  }`}
+                  title={isOvertime ? "已超過 60 分鐘限時，仍可繼續完成" : "剩餘探索時間"}
+                >
                   <Clock className="h-3.5 w-3.5" />
-                  <span className="font-mono">{formatDuration(elapsedSeconds)}</span>
+                  <span className="font-mono">
+                    {isOvertime ? `超時 +${formatDuration(elapsedSeconds - TIME_LIMIT_SECONDS)}` : `剩 ${formatDuration(remainingSeconds)}`}
+                  </span>
                 </span>
                 <span className="h-3 w-px bg-[#213155]/15" />
                 <span className="font-mono font-semibold text-[#008250]">
@@ -558,7 +575,7 @@ export default function FuhsingChroniclesApp() {
               className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#213155]/15 bg-[#EAF0FA] px-2.5 text-xs text-[#213155]/85 transition hover:border-[#103FA0] hover:text-[#103FA0]"
             >
               <BookOpen className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">資料來源與安全</span>
+              <span className="hidden sm:inline">列印素材與安全</span>
             </button>
 
           </div>
@@ -571,7 +588,9 @@ export default function FuhsingChroniclesApp() {
               {session.playerName}
             </span>
             <div className="flex items-center gap-3 font-mono">
-              <span className="text-[#103FA0]">{formatDuration(elapsedSeconds)}</span>
+              <span className={isOvertime ? "text-[#D21E14]" : remainingSeconds <= 300 ? "text-[#B98A00]" : "text-[#103FA0]"}>
+                {isOvertime ? `超時 +${formatDuration(elapsedSeconds - TIME_LIMIT_SECONDS)}` : `剩 ${formatDuration(remainingSeconds)}`}
+              </span>
               <span className="text-[#008250]">{session.score}分</span>
               <span className="text-[#213155]">碎片 {session.completedMissions.length}/8</span>
             </div>
@@ -581,6 +600,22 @@ export default function FuhsingChroniclesApp() {
 
       {/* Main Content Stage */}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        {session && isOvertime && !overtimeNoticeDismissed && (
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#D21E14]/40 bg-[#D21E14]/8 px-4 py-3">
+            <p className="text-sm leading-relaxed text-[#B41810]">
+              <span className="font-bold">時間到！</span> 已超過 60 分鐘限時{" "}
+              <span className="font-mono">{formatDuration(elapsedSeconds - TIME_LIMIT_SECONDS)}</span>。
+              仍可繼續觀察、作答與查看解答，成績單會標示超時。
+            </p>
+            <button
+              type="button"
+              onClick={() => setOvertimeNoticeDismissed(true)}
+              className="min-h-9 shrink-0 rounded-xl border border-[#D21E14]/40 bg-white/70 px-3 text-xs font-semibold text-[#B41810] hover:bg-white"
+            >
+              知道了
+            </button>
+          </div>
+        )}
         <AnimatePresence mode="wait">
           {/* SCREEN 01: OPENING SCREEN */}
           {screen === "opening" && (
@@ -609,7 +644,7 @@ export default function FuhsingChroniclesApp() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-white" />
                     <div className="absolute left-4 top-4 rounded-full border border-[#103FA0]/40 bg-[#213155]/85 px-3 py-1 font-mono text-[11px] text-[#F9CF00]">
-                      建議探索時間：50 分鐘
+                      限時 60 分鐘・倒數計時
                     </div>
                   </div>
 
@@ -904,7 +939,7 @@ export default function FuhsingChroniclesApp() {
                       {session.playerName} 的復興檔案
                     </h1>
                     <p className="text-xs text-[#213155]/70">
-                      建議以 50 分鐘漫步校園節奏進行探索（無倒數計時，請放心觀察與推理）
+                      限時 60 分鐘倒數：時間到只會標示超時，仍可繼續觀察、作答與查看解答
                     </p>
                   </div>
 
@@ -981,9 +1016,24 @@ export default function FuhsingChroniclesApp() {
                     </p>
                   </div>
                   <div className="archive-inset rounded-2xl p-3.5">
-                    <p className="text-xs text-[#213155]/65">已探索時間</p>
-                    <p className="mt-1 font-mono text-2xl font-bold text-[#213155]">
-                      {formatDuration(elapsedSeconds)}
+                    <p className="text-xs text-[#213155]/65">
+                      {isOvertime ? "已超時" : "剩餘時間"}
+                    </p>
+                    <p
+                      className={`mt-1 font-mono text-2xl font-bold ${
+                        isOvertime
+                          ? "text-[#D21E14]"
+                          : remainingSeconds <= 300
+                          ? "text-[#B98A00]"
+                          : "text-[#213155]"
+                      }`}
+                    >
+                      {isOvertime
+                        ? `+${formatDuration(elapsedSeconds - TIME_LIMIT_SECONDS)}`
+                        : formatDuration(remainingSeconds)}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-[#213155]/55">
+                      已用 {formatDuration(elapsedSeconds)}／限時 60:00
                     </p>
                   </div>
                 </div>
@@ -1159,7 +1209,6 @@ export default function FuhsingChroniclesApp() {
                   settings={settings}
                   isSolved={completedSet.has(activeMission.id)}
                   solvedDetail={solvedDetails[activeMission.id]}
-                  allSolvedDetails={solvedDetails}
                   hintsRevealed={
                     session.hintsUsed?.[String(activeMission.id)] ?? 0
                   }
@@ -1209,8 +1258,11 @@ export default function FuhsingChroniclesApp() {
                 session={session}
                 missions={missions}
                 endingStory={endingStory}
-                officialSources={officialSources}
+                printableResources={printableResources}
                 elapsedFormatted={formatDuration(elapsedSeconds)}
+                overtimeLabel={
+                  isOvertime ? `已超時 ${formatDuration(elapsedSeconds - TIME_LIMIT_SECONDS)}` : null
+                }
                 onReturnDashboard={() => setScreen("dashboard")}
                 onStartNewAdventure={handleStartFreshAdventure}
               />
@@ -1241,7 +1293,7 @@ export default function FuhsingChroniclesApp() {
         />
       )}
 
-      {/* OFFICIAL SOURCES & SAFETY MODAL */}
+      {/* PRINTABLE MATERIALS & SAFETY MODAL */}
       {showSourcesModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#213155]/45 p-4 backdrop-blur-sm">
           <div className="archive-card my-auto w-full max-w-3xl rounded-3xl p-6 sm:p-8 space-y-5">
@@ -1249,13 +1301,13 @@ export default function FuhsingChroniclesApp() {
               <div className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-[#103FA0]" />
                 <h2 className="font-serif text-xl font-bold text-[#213155]">
-                  官方資料來源與校園安全守則
+                  列印素材與校園安全守則
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setShowSourcesModal(false)}
-                aria-label="關閉資料來源視窗"
+                aria-label="關閉列印素材視窗"
                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#213155]/20 bg-[#EAF0FA] text-[#213155]"
               >
                 <X className="h-4 w-4" />
@@ -1265,22 +1317,22 @@ export default function FuhsingChroniclesApp() {
             <div className="rounded-2xl border border-[#008250]/35 bg-[#EAF0FA] p-4 space-y-1.5">
               <p className="text-xs font-bold text-[#008250]">活動安全守則</p>
               <p className="text-xs leading-relaxed text-[#213155]/85">
-                本遊戲設計遵循臺北市私立復興實驗高級中學校園安全規範：禁止奔跑、攀爬、跳躍，不可進入管制區或正在上課之教室，亦不可打擾老師、行政人員或拍攝其他學生。若校史館未開放，請直接使用關卡內的數位校史檔案作答。
+                本遊戲設計遵循臺北市私立復興實驗高級中學校園安全規範：禁止奔跑、攀爬、跳躍，不可進入管制區或正在上課之教室，亦不可打擾老師、行政人員或拍攝其他學生。若校史館未開放，請直接使用手冊線索卡 M04 的校史檔案摘錄作答。
               </p>
             </div>
 
             <div className="max-h-[55vh] space-y-2.5 overflow-y-auto pr-1">
-              {officialSources.map((src) => (
+              {printableResources.map((src) => (
                 <a
-                  key={src.title}
-                  href={src.url}
+                  key={src.id}
+                  href={encodeURI(src.href)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block rounded-xl border border-[#213155]/12 bg-[#EAF0FA] p-3.5 transition hover:border-[#103FA0]"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="rounded bg-[#F9CF00]/15 px-2 py-0.5 text-[10px] font-semibold text-[#103FA0]">
-                      {src.category}
+                      {src.category}・{src.format}
                     </span>
                     <ExternalLink className="h-3.5 w-3.5 text-[#103FA0]" />
                   </div>

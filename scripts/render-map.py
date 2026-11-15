@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""由 CampusMapSVG.tsx 重繪印刷地圖 printables/campus-map.png（含任務編號針腳）。
+"""由 CampusMapSVG.tsx 重繪印刷地圖 public/printables/campus-map.png（含任務編號針腳）。
 
 當任務針腳座標（src/lib/seed-data.ts 的 mapX/mapY）或地圖藝術層變更後執行：
     python3 scripts/render-map.py
@@ -43,16 +43,16 @@ block_b = '''{[0, 1].map((row) =>
                 ))
               )}'''
 block_c = '''{[0, 1, 2, 3, 4].map((row) => (
-                <rect key={`s-${row}`} x={572} y={92 + row * 56} width="34" height="26" rx="3" />
+                <rect key={`s-${row}`} x={559} y={96 + row * 60} width="34" height="26" rx="3" />
               ))}'''
 block_d = '''{[0, 1, 2, 3].map((row) => (
-                <rect key={`a-${row}`} x={572} y={616 + row * 52} width="34" height="24" rx="3" />
+                <rect key={`a-${row}`} x={559} y={622 + row * 54} width="34" height="24" rx="3" />
               ))}'''
 for blk, exp in [
     (block_a, rects(range(5), range(2), '76 + col * 28', '132 + row * 52', 22, 26, 3)),
     (block_b, rects(range(2), range(8), '290 + col * 28', '88 + row * 32', 20, 22, 3)),
-    (block_c, rects(range(5), None, '572', '92 + row * 56', 34, 26, 3)),
-    (block_d, rects(range(4), None, '572', '616 + row * 52', 34, 24, 3)),
+    (block_c, rects(range(5), None, '559', '96 + row * 60', 34, 26, 3)),
+    (block_d, rects(range(4), None, '559', '622 + row * 54', 34, 24, 3)),
 ]:
     assert art.count(blk) == 1, f'JSX map block changed; update blocks in {__file__}'
     art = art.replace(blk, exp)
@@ -81,6 +81,6 @@ result = subprocess.run([
     'node', '-e',
     "const sharp=require('sharp');const fs=require('fs');"
     "sharp(Buffer.from(fs.readFileSync('/tmp/map-print.svg')),{density:300}).png()"
-    ".toFile('printables/campus-map.png').then(i=>console.log('map png',i.width,i.height));",
+    ".toFile('public/printables/campus-map.png').then(i=>console.log('map png',i.width,i.height));",
 ])
 sys.exit(result.returncode)
