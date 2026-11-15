@@ -47,6 +47,25 @@ npm run build
 
 Next.js 靜態匯出會產生 `out/`，可部署到任意靜態網站主機（含 Vercel）。離線模式搭配 Service Worker 快取可離線開啟；雲端／組隊模式需要網路連線，斷線時進度會保留於記憶體並於恢復連線後自動補上同步。
 
+## 紙本印刷品（混合手冊）
+
+`printables/` 內含可直接列印的 PDF（A5 直式），與系統搭配的「混合手冊」玩法：紙本負責題目與現場觀察，系統負責驗證與計分。
+
+| 檔案 | 用途 |
+|------|------|
+| `復興探索手冊_學生版.pdf` | 學生任務書：玩法、校園地圖、八關題目＋現場觀察欄、碎片收集頁、終章排列題、答案速查表 |
+| `復興探索手冊_教師解答本.pdf` | 教師用：逐關解答、觀察題參考答案、解題提示、評分與安全建議 |
+| `campus-map.png` | 印刷地圖（300dpi，含任務編號針腳） |
+
+重新產生：
+
+```bash
+python3 scripts/render-map.py               # 由 CampusMapSVG.tsx 重繪印刷地圖
+npx tsx scripts/generate-booklets.ts        # 依題庫（src/lib/seed-data.ts）產出兩本 PDF
+```
+
+字體使用霞鶩文楷（`@expo-google-fonts/lxgw-wenkai-tc`，與遊戲介面手寫字體一致，需先 `npm install`）。
+
 ## 驗證
 
 ```bash
