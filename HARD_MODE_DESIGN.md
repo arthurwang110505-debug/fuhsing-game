@@ -468,6 +468,8 @@ H. **深**入資料，卻只關心眼前的分數。
 4. 對可部分計分的題型，只顯示「還有幾項要修正」，不逐項揭露答案。
 5. 答案與提示仍隨靜態前端送到瀏覽器。**目前介面沒有宣稱答案受保護**；正式競賽若要防止檢視原始碼取得答案，必須改成伺服器端驗證。
 6. 離線單機模式保留本地驗證，並在文件中明確標示為非競賽防作弊模式。
+7. **限時 60 分鐘（軟性）**：`TIME_LIMIT_SECONDS = 3600`，畫面右上角倒數、剩 5 分鐘轉琥珀色；時間到只顯示超時提示與成績單註記，不鎖住作答，避免活動現場因裝置或移動延誤而卡關。
+8. **資料來源改指向列印素材**：任務頁「列印素材」、過關彈窗與「列印素材與安全」視窗全部連到站內 `public/printables/`（學生手冊、教師解答本、印刷地圖），活動現場不需連線學校網站；官方網址僅保留在本設計文件與教師本的說明文字中。
 
 ## 實作驗收清單
 
@@ -481,6 +483,8 @@ H. **深**入資料，卻只關心眼前的分數。
 - [x] 保留校史館休館替代流程。
 - [x] 不要求進入教室、行政辦公室、管制區或觸碰任何設備。
 - [x] 通過 `npm test`、`npm run typecheck`、`npm run lint`、`npm run build`。
+- [x] 限時 60 分鐘倒數，時間到僅標示超時且可繼續作答，成績單註記超時。
+- [x] 遊戲內所有資料連結改為站內列印素材（`/printables/*`），並以測試確認檔案存在。
 - [ ] iPhone Safari、Android Chrome、桌面 Chrome 實機測試（需人工於裝置上驗證；元件皆以點選式操作設計，未依賴拖放的 pointer 事件）。
 
 ## 實作對照
@@ -493,15 +497,15 @@ H. **深**入資料，卻只關心眼前的分數。
 | 互動 | `src/components/PuzzleStages.tsx` | 八個獨立互動元件＋`MissionPuzzleStage` 分派器 |
 | 關卡頁 | `src/components/PuzzlePlayfield.tsx` | 關卡說明頁保留；解謎頁改為組裝新元件與三階提示匣 |
 | 遊戲流程 | `src/components/FuhsingChroniclesApp.tsx` | 提示狀態改為 `HintStage`，以 `getHintText` 取得對應提示 |
-| 紙本 | `scripts/generate-booklets.ts`、`printables/*.pdf` | 依新題型重寫題目頁與解答頁，並改為 60 分鐘節奏與 −1 分規則 |
+| 紙本 | `scripts/generate-booklets.ts`、`public/printables/*.pdf` | 依新題型重寫題目頁與解答頁，並改為 60 分鐘節奏與 −1 分規則；檔案置於 `public/` 以便站內連結 |
 | 測試 | `tests/game-flow.test.ts`、`tests/hard-mode.test.ts` | 題庫結構、逐題評分、正規化、回饋不洩題、提示計分 |
 
 ## 驗證指令
 
 ```bash
-npm test           # 23 個測試（含逐關評分與防洩題檢查）
+npm test           # 26 個測試（含逐關評分、防洩題、限時與素材連結檢查）
 npm run typecheck
 npm run lint
 npm run build
-npx tsx scripts/generate-booklets.ts   # 重新產生學生版／教師解答本 PDF
+npx tsx scripts/generate-booklets.ts   # 重新產生 public/printables 下的學生版／教師解答本 PDF
 ```

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""由 CampusMapSVG.tsx 重繪印刷地圖 printables/campus-map.png（含任務編號針腳）。
+"""由 CampusMapSVG.tsx 重繪印刷地圖 public/printables/campus-map.png（含任務編號針腳）。
 
 當任務針腳座標（src/lib/seed-data.ts 的 mapX/mapY）或地圖藝術層變更後執行：
     python3 scripts/render-map.py
@@ -81,6 +81,6 @@ result = subprocess.run([
     'node', '-e',
     "const sharp=require('sharp');const fs=require('fs');"
     "sharp(Buffer.from(fs.readFileSync('/tmp/map-print.svg')),{density:300}).png()"
-    ".toFile('printables/campus-map.png').then(i=>console.log('map png',i.width,i.height));",
+    ".toFile('public/printables/campus-map.png').then(i=>console.log('map png',i.width,i.height));",
 ])
 sys.exit(result.returncode)

@@ -31,8 +31,9 @@ export interface PublicMission {
   hint1: string;
   hint2: string;
   hint3: string;
-  sourceTitle: string;
-  sourceUrl: string;
+  /** 對應的列印素材（站內 PDF／PNG），不再連向外站 */
+  materialTitle: string;
+  materialUrl: string;
   fragmentName: string;
   fragmentPoem: string;
   fragmentSymbol: string;
@@ -46,8 +47,8 @@ export interface SolvedMissionDetail {
   fragmentPoem: string;
   fragmentSymbol: string;
   clueSummary: string;
-  sourceTitle: string;
-  sourceUrl: string;
+  materialTitle: string;
+  materialUrl: string;
 }
 
 export interface GameSettings {
@@ -70,10 +71,12 @@ export interface GameSession {
   finalSolved: boolean;
 }
 
-export interface OfficialSourceItem {
+export interface PrintableResource {
+  id: string;
   title: string;
   category: string;
-  url: string;
+  href: string;
+  format: string;
   note: string;
 }
 
@@ -85,7 +88,7 @@ export interface FinalPuzzleMeta {
   closingLine: string;
   shuffledLines: { id: string; text: string }[];
   hint: string;
-  sourceUrl: string;
+  materialUrl: string;
 }
 
 export type GameScreen =

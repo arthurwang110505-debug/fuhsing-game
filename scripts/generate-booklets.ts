@@ -2,9 +2,9 @@
  * 復興探索手冊・印刷品產生器
  *
  * 依 src/lib/seed-data.ts 的題庫與 FINAL_PUZZLE_DATA 產出：
- *   printables/復興探索手冊_學生版.pdf   —— 紙本任務書（含現場觀察欄）
- *   printables/復興探索手冊_教師解答本.pdf —— 教師用解答與評分建議
- *   printables/campus-map.png           —— 印刷地圖（請先執行 scripts/render-map.py）
+ *   public/printables/復興探索手冊_學生版.pdf   —— 紙本任務書（含現場觀察欄）
+ *   public/printables/復興探索手冊_教師解答本.pdf —— 教師用解答與評分建議
+ *   public/printables/campus-map.png           —— 印刷地圖（請先執行 scripts/render-map.py）
  *
  * 執行：npx tsx scripts/generate-booklets.ts
  * 字體：@expo-google-fonts/lxgw-wenkai-tc（霞鶩文楷），與遊戲介面的手寫字體一致。
@@ -33,7 +33,7 @@ const LINE = "#9AA9C4";
 
 const FONT_R = resolve("node_modules/@expo-google-fonts/lxgw-wenkai-tc/400Regular/LXGWWenKaiTC_400Regular.ttf");
 const FONT_B = resolve("node_modules/@expo-google-fonts/lxgw-wenkai-tc/700Bold/LXGWWenKaiTC_700Bold.ttf");
-const MAP_PNG = resolve("printables/campus-map.png");
+const MAP_PNG = resolve("public/printables/campus-map.png");
 
 // ---------- 題型資料（與 src/lib/seed-data.ts 的 payload 對應） ----------
 interface EvidenceCardItem { id: string; order: number; text: string; sourceKey: string; token?: string }
@@ -333,6 +333,7 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
     "③ 把推理題答案輸入系統，解鎖該關的記憶碎片。",
     "④ 八枚碎片集齊後，回到教室完成「終章：時光的回信」。",
     "⑤ 移動時請收起手機；到定點再拿出來輸入答案。",
+    "⑥ 系統限時 60 分鐘並倒數計時；時間到只會標示超時，仍可完成手冊與查看解答。",
   ];
   for (const s of steps) para(doc, s, { size: 10.5, gap: 7 });
   doc.y += 4;
@@ -347,7 +348,7 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
   for (const r of rules) para(doc, r, { size: 10, gap: 6 });
   doc.y += 4;
   heading(doc, "評分方式", GOLD);
-  para(doc, "系統計分 100 分（八關＋終章）＋ 現場觀察欄 20 分（由老師抽查或小組互評）。系統內每開啟一階提示，該關 −1 分（每關最多三階）。觀察欄的重點是觀察過程，不比對標準答案。", { size: 10, gap: 6 });
+  para(doc, "系統計分 100 分（八關＋終章）＋ 現場觀察欄 20 分（由老師抽查或小組互評）。系統內每開啟一階提示，該關 −1 分（每關最多三階），限時 60 分鐘倒數。觀察欄的重點是觀察過程，不比對標準答案。", { size: 10, gap: 6 });
 
   // 地圖
   doc.addPage();
@@ -546,7 +547,7 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
   doc.font("handb").fontSize(18).fillColor(YELLOW).text("教師解答本", M, 96, { width: CW, align: "center" });
   doc.font("hand").fontSize(11).fillColor("#F3DEDA").text("校園探索解謎・7–9 年級", M, 136, { width: CW, align: "center" });
   doc.y = 230;
-  para(doc, "本解答本包含八關推理題答案、現場觀察題參考答案、評分建議與安全事項。請勿在活動前發給學生。", { size: 10.5, gap: 14 });
+  para(doc, "本解答本包含八關推理題答案、現場觀察題參考答案、評分建議與安全事項。請勿在活動前發給學生。所有題目與解答也都收錄在可影印的《復興探索手冊》中，活動現場不需連線學校網站。", { size: 10.5, gap: 14 });
 
   heading(doc, "課程建議");
   for (const s of [
@@ -554,6 +555,7 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
     "・節奏建議（合計約 60 分鐘）：集合說明 5 分、M01 7 分、M02 6 分、M03 8 分、M04 8 分、M05 7 分、M06 7 分、M07 8 分、M08 9 分、終章與檢討 5 分。",
     "・移動時收起手機，到定點才拿出來驗證——把時間留給觀察與討論。",
     "・若班級無行動裝置：可全紙本進行，改由老師在教室電腦統一輸入答案。",
+    "・限時 60 分鐘：系統右上角倒數計時，剩 5 分鐘轉為琥珀色；時間到只提示超時，不會鎖住作答，成績單會標註超時。",
   ]) para(doc, s, { size: 10, gap: 6 });
 
   heading(doc, "評分建議", GOLD);
@@ -681,8 +683,7 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
 
     heading(doc, "關卡重點");
     para(doc, m.explanation, { size: 9.5, gap: 3 });
-    para(doc, `資料來源：${m.sourceTitle}`, { size: 8.5, color: MUTED, gap: 1 });
-    para(doc, m.sourceUrl, { size: 8, color: MUTED, gap: 1 });
+    para(doc, `列印素材：${m.materialTitle}（課前請先影印本手冊，不需連網）`, { size: 8.5, color: MUTED, gap: 1 });
     para(doc, `線索卡（碎片）：${m.clueSummary}`, { size: 8.5, color: MUTED, gap: 1 });
   }
 
@@ -722,11 +723,11 @@ function renderToFile(file: string, doc: PDFKit.PDFDocument): Promise<void> {
 }
 
 async function run(): Promise<void> {
-  mkdirSync("printables", { recursive: true });
-  await renderToFile("printables/復興探索手冊_學生版.pdf", buildStudentBooklet());
-  console.log("已產生 printables/復興探索手冊_學生版.pdf");
-  await renderToFile("printables/復興探索手冊_教師解答本.pdf", buildTeacherGuide());
-  console.log("已產生 printables/復興探索手冊_教師解答本.pdf");
+  mkdirSync("public/printables", { recursive: true });
+  await renderToFile("public/printables/復興探索手冊_學生版.pdf", buildStudentBooklet());
+  console.log("已產生 public/printables/復興探索手冊_學生版.pdf");
+  await renderToFile("public/printables/復興探索手冊_教師解答本.pdf", buildTeacherGuide());
+  console.log("已產生 public/printables/復興探索手冊_教師解答本.pdf");
 }
 
 run().catch((error: unknown) => {

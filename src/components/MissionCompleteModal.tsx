@@ -113,14 +113,14 @@ export default function MissionCompleteModal({
             {solvedDetail.explanation}
           </p>
           <div className="mt-3 border-t border-[#213155]/10 pt-2.5 flex items-center justify-between gap-2 text-xs text-[#213155]/65">
-            <span>資料來源：{solvedDetail.sourceTitle}</span>
+            <span>列印素材：{solvedDetail.materialTitle}</span>
             <a
-              href={solvedDetail.sourceUrl}
+              href={encodeURI(solvedDetail.materialUrl)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex shrink-0 items-center gap-1 text-[#103FA0] hover:underline"
             >
-              查看官方出處 <ExternalLink className="h-3 w-3" />
+              開啟手冊 PDF <ExternalLink className="h-3 w-3" />
             </a>
           </div>
         </div>

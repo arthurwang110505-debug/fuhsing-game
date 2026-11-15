@@ -5,6 +5,18 @@ import { FINAL_PUZZLE_DATA, SEED_MISSIONS, type SeedMission } from "./seed-data"
 /** 每開啟一階提示，該關扣 1 分；每關最多三階提示（困難模式規格） */
 export const HINT_PENALTY_POINTS = 1;
 
+/**
+ * 探索時間上限：60 分鐘。
+ * 採用「軟性限時」：時間到只會顯示超時提示，仍可繼續作答與查看解答，
+ * 成績單會標示超時，避免活動現場被硬性鎖住。
+ */
+export const TIME_LIMIT_SECONDS = 60 * 60;
+
+/** 剩餘秒數（不會小於 0） */
+export function remainingSeconds(elapsedSeconds: number): number {
+  return Math.max(0, TIME_LIMIT_SECONDS - Math.max(0, Math.floor(elapsedSeconds || 0)));
+}
+
 /** Local-only game rules and seed data. No API, database, or server access is used. */
 export function getLocalMissions(): PublicMission[] {
   return SEED_MISSIONS.map((mission) => ({ ...mission }));
@@ -22,8 +34,8 @@ export function extractSolvedDetail(mission: SeedMission): SolvedMissionDetail {
     fragmentPoem: mission.fragmentPoem,
     fragmentSymbol: mission.fragmentSymbol,
     clueSummary: mission.clueSummary,
-    sourceTitle: mission.sourceTitle,
-    sourceUrl: mission.sourceUrl,
+    materialTitle: mission.materialTitle,
+    materialUrl: mission.materialUrl,
   };
 }
 

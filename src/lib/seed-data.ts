@@ -1,4 +1,4 @@
-import type { PuzzleType } from "@/types/game";
+import type { PrintableResource, PuzzleType } from "@/types/game";
 
 export interface SeedMission {
   id: number;
@@ -19,8 +19,8 @@ export interface SeedMission {
   hint2: string;
   hint3: string;
   explanation: string;
-  sourceTitle: string;
-  sourceUrl: string;
+  materialTitle: string;
+  materialUrl: string;
   fragmentName: string;
   fragmentPoem: string;
   fragmentSymbol: string;
@@ -28,82 +28,32 @@ export interface SeedMission {
   defaultUnlocked: boolean;
 }
 
-export interface OfficialSourceItem {
-  title: string;
-  category: string;
-  url: string;
-  note: string;
-}
-
-export const OFFICIAL_SOURCES: OfficialSourceItem[] = [
+export const PRINTABLE_RESOURCES: PrintableResource[] = [
   {
-    title: "校史沿革（民國35年創辦至今）",
-    category: "學校歷史",
-    url: "https://www.fhjh.tp.edu.tw/about-fuhsing/189",
-    note: "臺北市私立復興實驗高級中學官方校史紀錄（含幼稚園、小學、中學、實驗高中及雙語部成立年份）。",
+    id: "student-handbook",
+    title: "復興探索手冊・學生版",
+    category: "列印素材",
+    href: "/printables/復興探索手冊_學生版.pdf",
+    format: "PDF",
+    note: "A5 直式任務書：八關題目、現場觀察欄、碎片收集頁與終章排列題。活動前影印，每組一本。",
   },
   {
-    title: "School History (Official English Archive)",
-    category: "學校歷史",
-    url: "https://www.fhjh.tp.edu.tw/en/node/106",
-    note: "包含 1946 年創校、1960 年遷至敦化南路現址與校舍改建歷程。",
+    id: "teacher-key",
+    title: "復興探索手冊・教師解答本",
+    category: "教師用",
+    href: "/printables/復興探索手冊_教師解答本.pdf",
+    format: "PDF",
+    note: "逐關解答、三階提示、評分建議與安全事項。請勿在活動前發給學生。",
   },
   {
-    title: "優質環境與校園建築特色",
-    category: "校園環境與建築",
-    url: "https://www.fhjh.tp.edu.tw/about-fuhsing/911",
-    note: "成賢樓、勤學樓、慎思樓、校史館、國學館、鐘樓（鐘塔）、小花園、魚菜共生及「綠的延伸」設計理念。",
-  },
-  {
-    title: "地理位置（臺北市大安區敦化南路一段262號）",
-    category: "校園位置",
-    url: "http://www.fhjh.tp.edu.tw/dispPageBox/mainCp.aspx?ddsPageID=MAINABOUTI",
-    note: "官方校園地址、鄰近捷運站及林蔭大道周邊文教環境說明。",
-  },
-  {
-    title: "校旗與校徽（民國82年修訂意涵）",
-    category: "校徽與象徵",
-    url: "https://www.fhjh.tp.edu.tw/about-fuhsing/183",
-    note: "三角形、五瓣梅花、火炬與鴿形火焰、外圍圓形之官方設計說明。",
-  },
-  {
-    title: "復興精神與復興理念（火炬精神・穩準高遠）",
-    category: "教育理念",
-    url: "https://www.fhjh.tp.edu.tw/about-fuhsing/182",
-    note: "校訓「穩準高遠」、學生核心素養「做上品人、學真知識、展多元才、行大我事」與火炬精神全文。",
-  },
-  {
-    title: "教務處業務介紹",
-    category: "行政處室",
-    url: "https://www.fhjh.tp.edu.tw/faculty-introduction/673",
-    note: "課程規劃、教學設備、成績與註冊證明、數位學生證等官方業務職掌。",
-  },
-  {
-    title: "學務處業務介紹",
-    category: "行政處室",
-    url: "https://www.fhjh.tp.edu.tw/faculty-introduction/710",
-    note: "訓育社團、生活輔導、遺失物處理、防震防災演練、衛生環保與健康中心業務。",
-  },
-  {
-    title: "總務處業務簡介",
-    category: "行政處室",
-    url: "https://www.fhjh.tp.edu.tw/administrative-unit/336",
-    note: "校舍修繕維護、校園綠美化、校具採購及場地借用相關職掌。",
-  },
-  {
-    title: "輔導室業務介紹",
-    category: "行政處室",
-    url: "https://www.fhjh.tp.edu.tw/faculty-introduction/604",
-    note: "三級預防輔導網絡、特殊教育與資源教室、升學與生涯探索資訊服務。",
-  },
-  {
-    title: "中學圖書館使用規則與館藏",
-    category: "圖書資源",
-    url: "https://www.fhjh.tp.edu.tw/faculty-introduction/3999",
-    note: "採用「中文圖書分類法」編目及平日開放閱讀規範。",
+    id: "campus-map",
+    title: "校園示意圖（300dpi 印刷地圖）",
+    category: "列印素材",
+    href: "/printables/campus-map.png",
+    format: "PNG",
+    note: "含任務編號針腳的印刷地圖，可列印或投影；為示意圖，非精確平面圖。",
   },
 ];
-
 /**
  * 困難模式題庫。
  *
@@ -191,8 +141,8 @@ export const SEED_MISSIONS: SeedMission[] = [
       "逐一對照校史、地理位置、優質環境三個來源；只有一張卡該放進「資料未載」，也只有一張卡與校史記載的事件年份衝突。",
     explanation:
       "可證實的是校史記載的 1946 創辦幼稚園、1960 遷至敦化南路現址、民國 57 年增設中學，以及敦化南路一段 262 號的校址、鐘樓與「綠的延伸」、北高南低的配置。鐘樓廣場的每日開放時段沒有任何官方頁面記載，屬於「資料未載」；而「民國 35 年創辦小學部」與校史衝突——1946 年創辦的是幼稚園，小學部於 1952 年才增辦。關鍵就在於：沒有證據不等於證據證明它錯。",
-    sourceTitle: "復興實中官網〈校史沿革〉、〈地理位置〉與〈優質環境〉",
-    sourceUrl: "https://www.fhjh.tp.edu.tw/about-fuhsing/189",
+    materialTitle: "學生手冊 M01・不在場的證詞",
+    materialUrl: "/printables/復興探索手冊_學生版.pdf",
     fragmentName: "紅磚晨光",
     fragmentPoem: "林蔭掩映紅磚牆，故事從跨入校門的這一步悄悄甦醒。",
     fragmentSymbol: "compass",
@@ -241,8 +191,8 @@ export const SEED_MISSIONS: SeedMission[] = [
       "正確行的首字依序是「穩、準、高、遠」；對照官方校訓頁確認這四個字的意思。",
     explanation:
       "正確組合為 A（穩住心念）、C（準確核對）、E（高舉理想）、G（遠望未來），首字讀為校訓「穩準高遠」。B 停止追問、D 盲目抄寫、F 只靠宣告、H 只看眼前，都是把正面詞彙偷換成反面的行為。官方校訓頁面記載的鐘塔精神是「個性沉穩、讀書精準、志氣崇高、目標宏遠」。",
-    sourceTitle: "復興實中官網〈復興精神〉與〈優質環境〉",
-    sourceUrl: "https://www.fhjh.tp.edu.tw/about-fuhsing/182",
+    materialTitle: "學生手冊 M02・鐘樓的四行密令",
+    materialUrl: "/printables/復興探索手冊_學生版.pdf",
     fragmentName: "鐘聲餘韻",
     fragmentPoem: "鐘聲不催促步伐，而是提醒每顆心穩準高遠地前行。",
     fragmentSymbol: "bell",
@@ -302,8 +252,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     hint3: "「校史」對應歷史文物，「國學」對應經典人文，「圖書館」對應閱讀借閱與分類編目。",
     explanation:
       "線索 1 把六個名稱切成兩個三元素集合；線索 4 解出三棟教學樓（成賢＝人格成果、勤學＝學習過程、慎思＝反思思辨）；線索 2、3、5 再把三個館舍唯一定位（校史館＝文物、國學館＝經典人文、中學圖書館＝閱讀借閱與中文圖書分類法編目）。判斷依據是主要功能，不是「都有書」這種表面相似。",
-    sourceTitle: "復興實中官網〈優質環境〉與〈中學圖書館〉",
-    sourceUrl: "https://www.fhjh.tp.edu.tw/about-fuhsing/911",
+    materialTitle: "學生手冊 M03・六座空間的身分危機",
+    materialUrl: "/printables/復興探索手冊_學生版.pdf",
     fragmentName: "紅瓦之名",
     fragmentPoem: "成賢、勤學而慎思，每一棟紅瓦灰牆都承載著期許。",
     fragmentSymbol: "building",
@@ -366,8 +316,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     hint3: "完整序列是 1946、1952、1960、1968、1993、2006、2008、2010；再核對每張卡的事件名稱。",
     explanation:
       "正確序列為：A 創辦幼稚園 1946（民國 35）、B 增辦小學 1952（民國 41）、C 遷至敦化南路現址 1960（民國 49）、D 增設中學 1968（民國 57）、E 修訂現行校徽 1993（民國 82）、F 成立實驗高中 2006（民國 95）、G 成立國中雙語部 2008（民國 97）、H 成立高中雙語部 2010（民國 99）。先鎖定錨點，再用民國年差推導其餘事件，最後才排序。",
-    sourceTitle: "復興實中官網〈校史〉",
-    sourceUrl: "https://www.fhjh.tp.edu.tw/about-fuhsing/189",
+    materialTitle: "學生手冊 M04・被竄改的時間軸",
+    materialUrl: "/printables/復興探索手冊_學生版.pdf",
     fragmentName: "時光年輪",
     fragmentPoem: "從民國三十五年的幼苗開始，一圈圈刻出十三年一貫的年輪。",
     fragmentSymbol: "hourglass",
@@ -425,8 +375,8 @@ export const SEED_MISSIONS: SeedMission[] = [
       "配對依序是三角形／向上向善與三位一體、梅花／堅忍、五瓣／五育、火炬／照亮他人、鴿形火焰／和平、圓形／規矩圓滿。",
     explanation:
       "民國 82 年修訂的現行校徽有四層象徵：三角形狀像「人」，寓意向上向善與中、小、幼三位一體；梅花在嚴冬綻放，象徵堅忍；五片花瓣對應五育並重；火炬勉勵學生成為照亮他人的存在；火焰取鴿形，寓意和平；外圍圓形象徵做人處事守規矩、求圓滿。把六張意涵卡的索引字依構件層級排序，就是第二層校驗詞「復興校徽之光」。",
-    sourceTitle: "復興實中官網〈校旗與校徽〉與〈School Symbol〉",
-    sourceUrl: "https://www.fhjh.tp.edu.tw/about-fuhsing/183",
+    materialTitle: "學生手冊 M05・徽章上的雙重密碼",
+    materialUrl: "/printables/復興探索手冊_學生版.pdf",
     fragmentName: "火炬紋章",
     fragmentPoem: "梅花綻放五育芬芳，和平之鴿托起世上的光。",
     fragmentSymbol: "flame",
@@ -505,8 +455,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     hint3: "第二題答案是「設計理念」；第三題答案是「不能由公開資料推得」。",
     explanation:
       "概念循環為：魚類產生養分 → 水中養分被植物利用 → 植物吸收養分並生長 → 經處理的水回到養殖系統。移除「植物利用水中養分」後，整條循環無法依原路徑完成。「綠的延伸」是建築與校園的設計理念，不是特定設備名稱；官方介紹提到小花園與魚菜共生，也不等於所有植栽都接入同一套系統。",
-    sourceTitle: "復興實中官網〈優質環境〉",
-    sourceUrl: "https://www.fhjh.tp.edu.tw/about-fuhsing/911",
+    materialTitle: "學生手冊 M06・綠色循環的缺頁",
+    materialUrl: "/printables/復興探索手冊_學生版.pdf",
     fragmentName: "綠蔭之息",
     fragmentPoem: "在城市的心臟留下一片林蔭，教會我們與自然並肩呼吸。",
     fragmentSymbol: "leaf",
@@ -561,8 +511,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     hint3: "四類依序是教務、學務、總務、輔導，每一類剛好兩筆；再用配額檢查。",
     explanation:
       "依主要待辦的業務性質分派：數位學生證與成績單屬學籍／成績（教務處）；社團報名與遺失物屬學生生活（學務處）；照明報修與場地設備借用屬校務資源（總務處）；生涯諮詢與心理支持屬學生輔導（輔導室）。次要問題刻意指向其他處室，若被帶偏就會出現配額衝突。",
-    sourceTitle: "復興實中官網〈教務處〉、〈學務處〉、〈總務處〉、〈輔導室〉業務介紹",
-    sourceUrl: "https://www.fhjh.tp.edu.tw/faculty-introduction/673",
+    materialTitle: "學生手冊 M07・八份求助紀錄",
+    materialUrl: "/printables/復興探索手冊_學生版.pdf",
     fragmentName: "守護之燈",
     fragmentPoem: "每一個順暢的日常背後，都有無聲付出的雙手在發光。",
     fragmentSymbol: "shield",
@@ -614,8 +564,8 @@ export const SEED_MISSIONS: SeedMission[] = [
     hint3: "校史年份是 1946 與 1960；校訓是穩準高遠；核心素養最後一句是行大我事。",
     explanation:
       "交叉校驗答案為：創辦 1946（民國 35）、遷至敦化南路現址 1960（民國 49）、校訓「穩準高遠」、核心素養最後一句「行大我事」。四句承諾的第一個動詞依序是責任、友誼、服務、愛，組成終章口令「責任友誼服務愛」。",
-    sourceTitle: "復興實中官網〈校史〉、〈復興精神〉與〈校徽〉",
-    sourceUrl: "https://www.fhjh.tp.edu.tw/about-fuhsing/182",
+    materialTitle: "學生手冊 M08・時光回信：最後的校驗",
+    materialUrl: "/printables/復興探索手冊_學生版.pdf",
     fragmentName: "復興之光",
     fragmentPoem: "所有散落的片段此刻連成星圖，照見我們立足的校園。",
     fragmentSymbol: "star",
@@ -648,5 +598,5 @@ export const FINAL_PUZZLE_DATA = {
     "從民國三十五年南陽街的一盞微光，到今日敦化南路林蔭旁的鐘樓與紅磚校舍；無論你是剛踏入七年級的新鮮人，或是即將邁向下一段旅程的八、九年級學長姐，此刻你在校園裡走過的每一步、安靜觀察過的每一處綠意、記住的每一個名字，都已經成為復興故事全新的一頁。",
     "請帶著「個性沉穩、讀書精準、志氣崇高、目標宏遠」的校訓，以及屬於復興小火炬的溫暖與勇氣，繼續照亮屬於你的世界。",
   ],
-  sourceUrl: "http://www.fhjh.tp.edu.tw/dispPageBox/mainCp2.aspx?ddsPageID=MAINABOUTA",
+  materialUrl: "/printables/復興探索手冊_學生版.pdf",
 };

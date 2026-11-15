@@ -148,12 +148,12 @@ export default function PuzzlePlayfield({
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#213155]/10 pt-4 text-xs text-[#213155]/70">
             <span>過關獎勵：記憶碎片「{mission.fragmentName}」</span>
             <a
-              href={mission.sourceUrl}
+              href={encodeURI(mission.materialUrl)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-[#103FA0] hover:underline"
             >
-              參考出處：{mission.sourceTitle} <ExternalLink className="h-3 w-3" />
+              列印素材：{mission.materialTitle} <ExternalLink className="h-3 w-3" />
             </a>
           </div>
 

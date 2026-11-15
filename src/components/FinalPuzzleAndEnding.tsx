@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import type {
   FinalPuzzleMeta,
   GameSession,
-  OfficialSourceItem,
+  PrintableResource,
   PublicMission,
 } from "@/types/game";
 import { FragmentSymbolIcon } from "./MissionCompleteModal";
@@ -174,6 +174,15 @@ export function FinalPuzzleView({
           </div>
         )}
 
+        <a
+          href={encodeURI(meta.materialUrl)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs text-[#103FA0] hover:underline"
+        >
+          <BookOpen className="h-4 w-4" /> 列印素材：學生手冊（終章排列題在紙本最後一頁）
+        </a>
+
         <button
           type="button"
           disabled={submitting}
@@ -192,8 +201,9 @@ interface EndingScreenViewProps {
   session: GameSession;
   missions: PublicMission[];
   endingStory: string[];
-  officialSources: OfficialSourceItem[];
+  printableResources: PrintableResource[];
   elapsedFormatted: string;
+  overtimeLabel?: string | null;
   onReturnDashboard: () => void;
   onStartNewAdventure: () => void;
 }
@@ -202,8 +212,9 @@ export function EndingScreenView({
   session,
   missions,
   endingStory,
-  officialSources,
+  printableResources,
   elapsedFormatted,
+  overtimeLabel,
   onReturnDashboard,
   onStartNewAdventure,
 }: EndingScreenViewProps) {
@@ -271,8 +282,8 @@ export function EndingScreenView({
             <p className="mt-1.5 font-mono text-3xl font-bold text-[#213155]">
               {elapsedFormatted}
             </p>
-            <p className="mt-0.5 text-xs text-[#213155]/65">
-              建議時長 50 分鐘・無倒數自由探索
+            <p className={`mt-0.5 text-xs ${overtimeLabel ? "font-semibold text-[#D21E14]" : "text-[#213155]/65"}`}>
+              {overtimeLabel ? `${overtimeLabel}（限時 60 分鐘）` : "限時 60 分鐘・於時限內完成"}
             </p>
           </div>
         </div>
@@ -323,29 +334,29 @@ export function EndingScreenView({
         </div>
       </div>
 
-      {/* Official Sources Verification Directory */}
+      {/* Printable materials directory */}
       <div className="archive-card rounded-3xl p-6 sm:p-8 space-y-4">
         <div className="flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-[#103FA0]" />
           <h2 className="font-serif text-xl font-bold text-[#213155]">
-            官方校史與校園資料來源一覽
+            列印素材一覽
           </h2>
         </div>
         <p className="text-xs text-[#213155]/70">
-          本遊戲所有校史年份、建築名稱、校徽意涵、環境教育與行政職責皆嚴格核對臺北市私立復興實驗高級中學公開官方資訊：
+          本活動的題目、觀察欄與解答都在下列可影印的素材裡；點選即可開啟或下載，不需要另外連到學校網站。
         </p>
         <div className="grid gap-2.5 sm:grid-cols-2">
-          {officialSources.map((src) => (
+          {printableResources.map((src) => (
             <a
-              key={src.title}
-              href={src.url}
+              key={src.id}
+              href={encodeURI(src.href)}
               target="_blank"
               rel="noopener noreferrer"
               className="group rounded-xl border border-[#213155]/12 bg-[#EAF0FA] p-3.5 transition hover:border-[#103FA0]/60"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="rounded bg-[#F9CF00]/15 px-2 py-0.5 text-[10px] font-semibold text-[#103FA0]">
-                  {src.category}
+                  {src.category}・{src.format}
                 </span>
                 <ExternalLink className="h-3.5 w-3.5 text-[#103FA0] opacity-70 group-hover:opacity-100" />
               </div>
