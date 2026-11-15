@@ -304,10 +304,11 @@ export default function CampusMapSVG({
             <path d="M399 384 V500" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
             <circle cx="399" cy="442" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
             <text x="347" y="412" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">小學操場</text>
-            <rect x="276" y="538" width="246" height="140" rx="28" fill="url(#courtGrad)" />
-            <path d="M399 550 V666" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
-            <circle cx="399" cy="608" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
-            <text x="347" y="578" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">中學操場</text>
+            <rect x="276" y="538" width="246" height="312" rx="28" fill="url(#courtGrad)" />
+            <path d="M399 552 V836" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <circle cx="399" cy="694" r="44" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <circle cx="399" cy="694" r="4" fill="#FFFFFF" opacity=".45" />
+            <text x="347" y="582" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">中學操場</text>
 
 
             {/* East wing: 慎思樓・校史館・行政處室 — 三棟連成一體（共用牆面，無縫連接） */}
