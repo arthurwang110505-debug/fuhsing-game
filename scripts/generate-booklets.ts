@@ -13,6 +13,7 @@ import PDFDocument from "pdfkit";
 import { mkdirSync, existsSync, createWriteStream } from "node:fs";
 import { resolve } from "node:path";
 import { SEED_MISSIONS, FINAL_PUZZLE_DATA, type SeedMission } from "../src/lib/seed-data";
+import { getAnswerSheet } from "../src/lib/answer-sheets";
 
 // ---------- 版面設定（A5 直式） ----------
 const PAGE_W = 419.53;
@@ -137,6 +138,15 @@ function letter(index: number): string {
   return String.fromCharCode(65 + index);
 }
 
+const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧"];
+/** 任務卡原文以「任務 A：」開頭，紙本已用 ①–⑥ 編號，避免重複 */
+function stripTaskPrefix(text: string): string {
+  return text.replace(/^任務\s*[A-Za-z]\s*[:：]\s*/, "");
+}
+function circled(index: number): string {
+  return CIRCLED[index] ?? String(index + 1);
+}
+
 function renderEvidenceClassify(
   doc: Doc,
   columns: EvidenceColumnItem[],
@@ -144,18 +154,32 @@ function renderEvidenceClassify(
   sources: EvidenceSourceItem[],
   lockLabel?: string
 ): void {
-  para(doc, `三個證據欄：${columns.map((c) => c.label).join("｜")}`, { size: 10, font: "handb", color: BLUE, gap: 5 });
-  for (const card of [...cards].sort((a, b) => a.order - b.order)) {
-    para(doc, `證詞 ${card.order}：${card.text}`, { size: 9.5, gap: 4, x: M + 6, width: CW - 12 });
+  para(doc, `三個證據欄：${columns.map((column) => `${column.label}（${column.note}）`).join("｜")}`, {
+    size: 9,
+    font: "handb",
+    color: BLUE,
+    gap: 5,
+  });
+  const sorted = [...cards].sort((a, b) => a.order - b.order);
+  for (const card of sorted) {
+    para(doc, `證詞卡 ${circled(card.order - 1)}：${card.text}`, { size: 9.5, gap: 2, x: M + 6, width: CW - 12 });
+    // 只印卡背字；不印來源欄位，避免直接洩漏證據分類
+    para(doc, `　　卡背字：${card.token ? card.token : "（無字）"}`, {
+      size: 8,
+      color: MUTED,
+      gap: 4,
+      x: M + 12,
+      width: CW - 24,
+    });
   }
   doc.y += 2;
-  para(doc, "可證實　＿＿＿＿＿＿＿＿＿＿＿＿", { size: 9.5, color: BLUE, gap: 3 });
-  para(doc, "與來源矛盾　＿＿＿＿＿＿＿＿＿＿", { size: 9.5, color: BLUE, gap: 3 });
-  para(doc, "資料未載　＿＿＿＿＿＿＿＿＿＿＿", { size: 9.5, color: BLUE, gap: 5 });
-  para(doc, lockLabel ?? "檔案鎖校驗字：＿＿＿＿＿＿", { size: 9.5, color: GOLD, gap: 4 });
-  para(doc, "理由（一句話說明未載與矛盾的差別）：", { size: 9, color: MUTED, gap: 2 });
+  para(doc, "作答欄（填入證據欄名稱）：", { size: 9.5, font: "handb", color: GOLD, gap: 3 });
+  para(doc, sorted.slice(0, 4).map((card) => `${circled(card.order - 1)}→＿＿＿`).join("　"), { size: 9.5, gap: 3 });
+  para(doc, sorted.slice(4).map((card) => `${circled(card.order - 1)}→＿＿＿`).join("　"), { size: 9.5, gap: 5 });
+  para(doc, `${lockLabel ?? "檔案鎖校驗字（只取可證實卡片，依卡號順序）"}：＿＿＿＿＿＿`, { size: 9.5, color: GOLD, gap: 4 });
+  para(doc, "理由（一句話說明「資料未載」與「與來源矛盾」的差別）：", { size: 9, color: MUTED, gap: 2 });
   writeLines(doc, 2);
-  para(doc, "可核對的官方來源：", { size: 9.5, font: "handb", color: BLUE, gap: 3 });
+  para(doc, "可逐字核對的官方來源節錄：", { size: 9.5, font: "handb", color: BLUE, gap: 3 });
   for (const source of sources) {
     para(doc, `・${source.title}：${source.excerpt}`, { size: 8, color: MUTED, gap: 2, x: M + 6, width: CW - 12 });
   }
@@ -163,17 +187,18 @@ function renderEvidenceClassify(
 }
 
 function renderAcrostic(doc: Doc, slots: AcrosticSlotItem[], lines: AcrosticLineItem[]): void {
+  para(doc, "語意槽位（每個槽位只能放入一行詩）：", { size: 10, font: "handb", color: BLUE, gap: 3 });
   for (const slot of slots) {
-    para(doc, `【${slot.label}】${slot.requirement}`, { size: 9.5, font: "handb", gap: 2 });
-    para(doc, "選擇詩行：＿＿＿＿（填入詩行代號）", { size: 9.5, color: BLUE, gap: 6, x: M + 8, width: CW - 16 });
+    para(doc, `【${slot.label}】${slot.requirement}`, { size: 9.5, gap: 4, x: M + 6, width: CW - 12 });
   }
   doc.y += 2;
-  para(doc, "四段殘詩（含抄錄者加入的干擾句）：", { size: 10, font: "handb", color: BLUE, gap: 4 });
+  para(doc, "八行殘詩（代號 A–H，其中四行是偷換概念的干擾句）：", { size: 10, font: "handb", color: BLUE, gap: 4 });
   for (const line of lines) {
     para(doc, `${line.id}. ${line.lead}${line.text}`, { size: 9.5, gap: 3, x: M + 8, width: CW - 16 });
   }
   doc.y += 3;
-  para(doc, "四字密令：＿＿　＿＿　＿＿　＿＿", { size: 11, color: GOLD, gap: 8 });
+  para(doc, "作答欄（填詩行代號）：", { size: 9.5, font: "handb", color: GOLD, gap: 3 });
+  para(doc, slots.map((slot) => `${slot.label}→＿＿`).join("　"), { size: 9.5, gap: 6 });
 }
 
 function renderLogicGrid(
@@ -189,28 +214,37 @@ function renderLogicGrid(
   }
   doc.y += 4;
   para(doc, `${gridTitle}：`, { size: 10, font: "handb", color: BLUE, gap: 4 });
+  left.forEach((item, index) => {
+    para(doc, `空間卡 ${letter(index)}｜${item.label}`, { size: 8.5, gap: 2, x: M + 6, width: CW - 12 });
+  });
+  doc.y += 3;
+  para(doc, "任務卡：", { size: 10, font: "handb", color: BLUE, gap: 3 });
   right.forEach((item, index) => {
-    para(doc, `任務 ${letter(index)}：${item.text}`, { size: 8.5, gap: 2, x: M + 6, width: CW - 12 });
+    para(doc, `任務卡 ${circled(index)}：${stripTaskPrefix(item.text)}`, { size: 8.5, gap: 2, x: M + 6, width: CW - 12 });
   });
   doc.y += 4;
-  para(doc, `配對欄（${left.map((item) => item.label).join("、")}）：`, { size: 9.5, color: BLUE, gap: 3 });
-  const blanks = left.map((item) => `${item.label}→____`).join("　");
-  para(doc, blanks, { size: 9.5, gap: 8, x: M + 6, width: CW - 12 });
+  para(doc, "作答欄（填任務卡編號）：", { size: 9.5, font: "handb", color: GOLD, gap: 3 });
+  para(doc, left.slice(0, 3).map((_, index) => `${letter(index)}→＿＿`).join("　"), { size: 9.5, gap: 3 });
+  para(doc, left.slice(3).map((_, index) => `${letter(index + 3)}→＿＿`).join("　"), { size: 9.5, gap: 8 });
 }
 
 function renderTimelineYears(doc: Doc, items: TimelineItem[], archive: ArchiveItem[], formula?: string): void {
   para(doc, `換算規則：${formula ?? "民國年 + 1911 = 西元年"}`, { size: 9, color: MUTED, gap: 4 });
+  para(doc, "事件卡：", { size: 10, font: "handb", color: BLUE, gap: 3 });
   items.forEach((item) => {
-    para(doc, `事件 ${item.id}｜${item.label}（${item.clue}）　年份：＿＿＿＿`, { size: 9.5, gap: 4, x: M + 6, width: CW - 12 });
+    para(doc, `事件卡 ${item.id}｜${item.label}（${item.clue}）`, { size: 9, gap: 3, x: M + 6, width: CW - 12 });
   });
   doc.y += 3;
-  para(doc, "校史檔案（證據）：", { size: 10, font: "handb", color: BLUE, gap: 4 });
+  para(doc, "校史檔案（證據，校史館休館時同樣可用）：", { size: 10, font: "handb", color: BLUE, gap: 4 });
   for (const entry of archive) {
     para(doc, `${entry.period}　${entry.heading}——${entry.detail}`, { size: 8.5, color: MUTED, gap: 3, x: M + 6, width: CW - 12 });
   }
   doc.y += 4;
-  para(doc, "由最早到最晚排序（填事件代號）：", { size: 9.5, color: BLUE, gap: 3 });
-  para(doc, Array.from({ length: 8 }, (_, i) => `${i + 1}→____`).join("　"), { size: 9.5, gap: 8 });
+  para(doc, "作答欄（年份填西元，順序填 1–8）：", { size: 9.5, font: "handb", color: GOLD, gap: 3 });
+  items.forEach((item) => {
+    para(doc, `${item.id}　年份 ＿＿＿＿　順序 ＿＿`, { size: 9, gap: 3, x: M + 6, width: CW - 12 });
+  });
+  doc.y += 2;
 }
 
 function renderEmblem(
@@ -219,25 +253,37 @@ function renderEmblem(
   meanings: EmblemMeaningItem[],
   codeLabel?: string
 ): void {
-  para(doc, "第一階段：構件與意涵一對一配對", { size: 10, font: "handb", color: BLUE, gap: 3 });
+  para(doc, "構件卡：", { size: 10, font: "handb", color: BLUE, gap: 3 });
   components.forEach((component, index) => {
-    para(doc, `${component.label}（${component.layer}）→ ____`, { size: 9.5, gap: 3, x: M + 6, width: CW - 12 });
+    para(doc, `構件卡 ${letter(index)}｜${component.label}（${component.layer}）`, { size: 9, gap: 2, x: M + 6, width: CW - 12 });
   });
   doc.y += 3;
-  para(doc, "意涵卡：", { size: 9.5, font: "handb", color: BLUE, gap: 3 });
+  para(doc, "意涵卡：", { size: 10, font: "handb", color: BLUE, gap: 3 });
   meanings.forEach((meaning, index) => {
-    para(doc, `${index + 1}. ${meaning.text}`, { size: 8.5, gap: 2, x: M + 6, width: CW - 12 });
+    para(doc, `${circled(index)} ${meaning.text}${meaning.indexChar ? `　［索引字：${meaning.indexChar}］` : ""}`, {
+      size: 8.5,
+      gap: 2,
+      x: M + 6,
+      width: CW - 12,
+    });
   });
   doc.y += 3;
+  para(doc, "作答欄（填意涵卡編號）：", { size: 9.5, font: "handb", color: GOLD, gap: 3 });
+  para(doc, components.slice(0, 3).map((_, index) => `${letter(index)}→＿＿`).join("　"), { size: 9.5, gap: 3 });
+  para(doc, components.slice(3).map((_, index) => `${letter(index + 3)}→＿＿`).join("　"), { size: 9.5, gap: 5 });
   para(doc, "第二階段：依外形→植物→數量→器物→造型→邊界讀取索引字", { size: 9.5, font: "handb", color: BLUE, gap: 3 });
   para(doc, `${codeLabel ?? "第二層校驗詞"}：＿＿＿＿＿＿`, { size: 10, color: GOLD, gap: 8 });
 }
 
 function renderCycle(doc: Doc, nodes: CycleNodeItem[], questions: CycleQuestionItem[], factBoundary?: string): void {
-  para(doc, "概念卡（順序打亂，請排成循環）：", { size: 10, font: "handb", color: BLUE, gap: 3 });
-  nodes.forEach((node) => para(doc, `・${node.label}`, { size: 9.5, gap: 2, x: M + 6, width: CW - 12 }));
-  doc.y += 2;
-  para(doc, "循環順序：____ → ____ → ____ → ____（最後接回第一張）", { size: 9.5, color: BLUE, gap: 6 });
+  para(doc, "概念卡（順序已打亂，代號 A–D）：", { size: 10, font: "handb", color: BLUE, gap: 3 });
+  nodes.forEach((node, index) => para(doc, `概念卡 ${letter(index)}｜${node.label}`, { size: 9.5, gap: 3, x: M + 6, width: CW - 12 }));
+  doc.y += 3;
+  para(doc, "作答欄：第 1 站→＿＿　第 2 站→＿＿　第 3 站→＿＿　第 4 站→＿＿（第 4 站接回第 1 站）", {
+    size: 9.5,
+    color: GOLD,
+    gap: 6,
+  });
   for (const question of questions) {
     para(doc, `${question.label}：${question.prompt}`, { size: 9.5, font: "handb", gap: 2 });
     writeLines(doc, 2);
@@ -246,8 +292,9 @@ function renderCycle(doc: Doc, nodes: CycleNodeItem[], questions: CycleQuestionI
 }
 
 function renderOfficeQuota(doc: Doc, records: OfficeRecordItem[], offices: OfficeItem[]): void {
+  para(doc, "紀錄卡：", { size: 10, font: "handb", color: BLUE, gap: 3 });
   for (const record of records) {
-    para(doc, `檔案 ${record.id}｜主要待辦：${record.main}（順便想問：${record.aside}）`, {
+    para(doc, `紀錄 ${record.id}｜主要待辦：${record.main}（順便想問：${record.aside}）`, {
       size: 9,
       gap: 3,
       x: M + 4,
@@ -255,12 +302,14 @@ function renderOfficeQuota(doc: Doc, records: OfficeRecordItem[], offices: Offic
     });
   }
   doc.y += 2;
+  para(doc, "四個收件匣：", { size: 10, font: "handb", color: BLUE, gap: 3 });
   for (const office of offices) {
     para(doc, `．${office.label}（配額 ${office.quota ?? 2} 件）——${office.note}`, { size: 8.5, color: MUTED, gap: 2, x: M + 6, width: CW - 12 });
   }
   doc.y += 3;
-  para(doc, "配對欄（填處室名稱，每處室兩件）：", { size: 9.5, color: BLUE, gap: 3 });
-  para(doc, records.map((record) => `${record.id}→____`).join("　"), { size: 9.5, gap: 8 });
+  para(doc, "作答欄（填處室名稱，每處室恰好兩件）：", { size: 9.5, font: "handb", color: GOLD, gap: 3 });
+  para(doc, records.slice(0, 4).map((record) => `${record.id}→＿＿＿`).join("　"), { size: 9.5, gap: 3 });
+  para(doc, records.slice(4).map((record) => `${record.id}→＿＿＿`).join("　"), { size: 9.5, gap: 8 });
 }
 
 function renderFinalCrosscheck(
@@ -269,13 +318,20 @@ function renderFinalCrosscheck(
   passphrase?: PassphraseItem,
   promises: string[] = []
 ): void {
+  para(doc, "四個校驗欄（各自要回不同關卡查核）：", { size: 10, font: "handb", color: BLUE, gap: 3 });
   checks.forEach((check, index) => {
-    para(doc, `${index + 1}. ${check.label}：＿＿＿＿＿＿（${check.keep ?? ""}）`, { size: 9.5, gap: 5 });
+    para(doc, `${circled(index)} ${check.label}${check.keep ? `（${check.keep}）` : ""}`, { size: 9.5, gap: 3, x: M + 6, width: CW - 12 });
   });
-  doc.y += 2;
+  doc.y += 3;
+  para(doc, "作答欄：", { size: 9.5, font: "handb", color: GOLD, gap: 3 });
+  para(doc, checks.map((_, index) => `${circled(index)}→＿＿＿＿`).join("　"), { size: 9.5, gap: 6 });
   para(doc, passphrase?.label ?? "終章口令", { size: 10, font: "handb", color: GOLD, gap: 2 });
   para(doc, passphrase?.prompt ?? "", { size: 9, color: MUTED, gap: 3 });
-  para(doc, promises.map((promise) => `${promise.slice(0, 3)}……`).join("　"), { size: 8.5, color: MUTED, gap: 4 });
+  para(doc, `四句承諾（終章會用到）：${promises.map((promise) => `「${promise}」`).join("　")}`, {
+    size: 8.5,
+    color: MUTED,
+    gap: 4,
+  });
   para(doc, "終章口令：＿＿＿＿＿＿＿＿", { size: 10.5, color: GOLD, gap: 8 });
 }
 
@@ -311,9 +367,9 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
   doc.rect(0, 210, PAGE_W, 6).fill(YELLOW);
   doc.font("handb").fontSize(27).fillColor("#FFFFFF").text("復興檔案", M, 58, { width: CW, align: "center" });
   doc.font("handb").fontSize(27).fillColor(YELLOW).text("時光的邀請", M, 96, { width: CW, align: "center" });
-  doc.font("hand").fontSize(12).fillColor("#DCE6F7").text("校園探索解謎・學生手冊", M, 146, { width: CW, align: "center" });
+  doc.font("hand").fontSize(12).fillColor("#DCE6F7").text("校園探索解謎・學生線索卡手冊", M, 146, { width: CW, align: "center" });
   doc.y = 246;
-  para(doc, "這本手冊是你的探索檔案。依地圖走訪八個任務點，在紙上作答、完成現場觀察，再到系統輸入答案、解鎖記憶碎片。", { size: 10.5, gap: 16 });
+  para(doc, "這本手冊是你的線索本。八個關卡的題目資料只印在後面的線索卡上，網站不會重複顯示：先讀線索卡、小組討論、把答案寫進作答欄，再到系統照同樣的欄位輸入，解鎖記憶碎片。", { size: 10.5, gap: 16 });
   doc.font("hand").fontSize(11).fillColor(INK);
   for (const label of ["姓　　名", "班　　級", "小　　組", "探索日期"]) {
     doc.text(label, M + 4, doc.y, { width: 80, lineBreak: false });
@@ -329,11 +385,12 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
   heading(doc, "怎麼玩");
   const steps = [
     "① 依「校園地圖」前往任務點（黃色數字＝任務位置）。",
-    "② 讀任務頁：在紙上作答推理題，並完成「現場觀察欄」。",
-    "③ 把推理題答案輸入系統，解鎖該關的記憶碎片。",
-    "④ 八枚碎片集齊後，回到教室完成「終章：時光的回信」。",
-    "⑤ 移動時請收起手機；到定點再拿出來輸入答案。",
-    "⑥ 系統限時 60 分鐘並倒數計時；時間到只會標示超時，仍可完成手冊與查看解答。",
+    "② 翻到該關的線索卡：本關所有線索都在紙上，網站不提供題目資料。",
+    "③ 小組討論後把答案寫在作答欄，再到系統用同樣的欄位代號輸入。",
+    "④ 答對就解鎖該關的記憶碎片；也別忘了完成「現場觀察欄」。",
+    "⑤ 八枚碎片集齊後，回到教室完成「終章：時光的回信」。",
+    "⑥ 移動時請收起手機；到定點再拿出來輸入答案。",
+    "⑦ 系統限時 60 分鐘並倒數計時；時間到只會標示超時，仍可完成手冊與查看解答。",
   ];
   for (const s of steps) para(doc, s, { size: 10.5, gap: 7 });
   doc.y += 4;
@@ -343,7 +400,7 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
     "• 不進入正在上課的教室與行政管制區域。",
     "• 不打擾師長辦公，亦不拍攝其他同學。",
     "• 愛護花木與設備：只觀察、不觸摸、不採集。",
-    "• 遇校史館休館時，改用系統內的「數位校史檔案」。",
+    "• 遇校史館休館時，改用線索卡 M04 的校史檔案摘錄（內容與現場檔案相同）。",
   ];
   for (const r of rules) para(doc, r, { size: 10, gap: 6 });
   doc.y += 4;
@@ -370,7 +427,10 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
     doc.font("handb").fontSize(11).fillColor(INK).text(m.code, M, doc.y + 4, { width: 44, align: "center" });
     doc.font("handb").fontSize(16).fillColor(INK).text(m.title, M + 52, doc.y - 1, { width: CW - 52 });
     doc.y += 24;
-    para(doc, `${m.subtitle}　｜　位置：${m.locationName}`, { size: 8.5, color: MUTED, gap: 8 });
+    const sheet = getAnswerSheet(m.id);
+    para(doc, `${sheet?.cardTitle ?? `${m.code}　${m.title}`}　★ 本頁即本關線索卡`, { size: 9, font: "handb", color: GOLD, gap: 3 });
+    para(doc, `${m.subtitle}　｜　位置：${m.locationName}`, { size: 8.5, color: MUTED, gap: 3 });
+    para(doc, "題目資料只印在這裡，系統只負責收答案；作答欄的欄位與網站完全相同。", { size: 8.5, color: BLUE, gap: 8 });
 
     // 故事背景
     doc.font("hand").fontSize(9.5);
@@ -484,7 +544,7 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
 
   // 答案速查表
   doc.addPage();
-  heading(doc, "答案速查表（輸入系統用）");
+  heading(doc, "作答進度表（每關輸入後打勾）");
   for (const m of SEED_MISSIONS) {
     ensure(doc, 30);
     const y = doc.y;
@@ -547,11 +607,11 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
   doc.font("handb").fontSize(18).fillColor(YELLOW).text("教師解答本", M, 96, { width: CW, align: "center" });
   doc.font("hand").fontSize(11).fillColor("#F3DEDA").text("校園探索解謎・7–9 年級", M, 136, { width: CW, align: "center" });
   doc.y = 230;
-  para(doc, "本解答本包含八關推理題答案、現場觀察題參考答案、評分建議與安全事項。請勿在活動前發給學生。所有題目與解答也都收錄在可影印的《復興探索手冊》中，活動現場不需連線學校網站。", { size: 10.5, gap: 14 });
+  para(doc, "本解答本包含八關線索卡的答案、現場觀察題參考答案、評分建議與安全事項。請勿在活動前發給學生。學生版手冊是唯一的線索來源（網站只負責輸入答案），因此每關解答都標註對應的線索卡與作答欄位。", { size: 10.5, gap: 14 });
 
   heading(doc, "課程建議");
   for (const s of [
-    "・建議 2–4 人一組，每組一本學生手冊；手機每組至少一台可輸入答案即可。",
+    "・建議 2–4 人一組，每組一本學生版線索卡手冊；手機每組至少一台可輸入答案即可。",
     "・節奏建議（合計約 60 分鐘）：集合說明 5 分、M01 7 分、M02 6 分、M03 8 分、M04 8 分、M05 7 分、M06 7 分、M07 8 分、M08 9 分、終章與檢討 5 分。",
     "・移動時收起手機，到定點才拿出來驗證——把時間留給觀察與討論。",
     "・若班級無行動裝置：可全紙本進行，改由老師在教室電腦統一輸入答案。",
@@ -576,6 +636,7 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
     doc.font("handb").fontSize(11).fillColor("#FFFFFF").text(m.code, M, doc.y + 4, { width: 44, align: "center" });
     doc.font("handb").fontSize(15).fillColor(INK).text(m.title, M + 52, doc.y - 1, { width: CW - 52 });
     doc.y += 24;
+    para(doc, `${getAnswerSheet(m.id)?.cardTitle ?? m.code}（學生手冊對應頁）`, { size: 8.5, color: MUTED, gap: 2 });
 
     heading(doc, "解答");
     const keyPayload = m.puzzlePayload as unknown as {
@@ -599,7 +660,7 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
         const a = ans as { placement: Record<string, string>; lock: string };
         const columnLabel = new Map((keyPayload.columns ?? []).map((column) => [column.id, column.label]));
         for (const card of [...(keyPayload.cards ?? [])].sort((x, y) => x.order - y.order)) {
-          para(doc, `證詞 ${card.order} → ${columnLabel.get(a.placement[card.id]) ?? a.placement[card.id]}`, { size: 9.5, gap: 3 });
+          para(doc, `證詞卡 ${circled(card.order - 1)} → ${columnLabel.get(a.placement[card.id]) ?? a.placement[card.id]}`, { size: 9.5, gap: 3 });
         }
         para(doc, `檔案鎖校驗字：${a.lock}`, { size: 10, font: "handb", color: GOLD, gap: 4 });
         break;
@@ -618,10 +679,12 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
       }
       case "logic-grid": {
         const a = ans as Record<string, string>;
-        const right = new Map((keyPayload.rightItems ?? []).map((item) => [item.id, item.text]));
-        for (const left of keyPayload.leftItems ?? []) {
-          para(doc, `${left.label} → ${right.get(a[left.id]) ?? a[left.id]}`, { size: 9.5, gap: 3 });
-        }
+        const right = new Map(
+          (keyPayload.rightItems ?? []).map((item, index) => [item.id, `任務卡 ${circled(index)}：${stripTaskPrefix(item.text)}`])
+        );
+        (keyPayload.leftItems ?? []).forEach((left, index) => {
+          para(doc, `空間卡 ${letter(index)}（${left.label}）→ ${right.get(a[left.id]) ?? a[left.id]}`, { size: 9, gap: 3 });
+        });
         break;
       }
       case "timeline-years": {
@@ -637,16 +700,27 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
         const a = ans as { pairs: Record<string, string>; code: string };
         const components = new Map((keyPayload.components ?? []).map((component) => [component.id, component.label]));
         const meanings = new Map((keyPayload.meanings ?? []).map((meaning) => [meaning.id, meaning.text]));
-        for (const [componentId, meaningId] of Object.entries(a.pairs)) {
-          para(doc, `${components.get(componentId) ?? componentId} → ${meanings.get(meaningId) ?? meaningId}`, { size: 9, gap: 3 });
-        }
+        (keyPayload.components ?? []).forEach((component, index) => {
+          const meaningId = a.pairs[component.id];
+          const meaningIndex = (keyPayload.meanings ?? []).findIndex((meaning) => meaning.id === meaningId);
+          para(
+            doc,
+            `構件卡 ${letter(index)}（${component.label}）→ 意涵 ${meaningIndex >= 0 ? circled(meaningIndex) : meaningId}：${meanings.get(meaningId) ?? ""}`,
+            { size: 8.5, gap: 3 }
+          );
+        });
         para(doc, `第二層校驗詞：${a.code}`, { size: 10, font: "handb", color: GOLD, gap: 4 });
         break;
       }
       case "cycle-flow": {
         const a = ans as { order: string[]; answers: Record<string, unknown> };
         const nodes = new Map((keyPayload.nodes ?? []).map((node) => [node.id, node.label]));
-        para(doc, `循環順序：${a.order.map((id) => nodes.get(id) ?? id).join(" → ")} → 接回第一步`, { size: 9.5, gap: 4 });
+        const nodeCode = new Map((keyPayload.nodes ?? []).map((node, index) => [node.id, letter(index)]));
+        para(
+          doc,
+          `循環順序：${a.order.map((id) => `${nodeCode.get(id) ?? id}（${nodes.get(id) ?? ""}）`).join(" → ")} → 接回第一步`,
+          { size: 9, gap: 4 }
+        );
         para(doc, "追問一：植物利用養分的環節中斷，概念循環無法依原路徑完成。", { size: 9.5, gap: 3 });
         para(doc, "追問二：「綠的延伸」是設計理念，不是特定設備名稱。", { size: 9.5, gap: 3 });
         para(doc, "追問三：不能；公開介紹提到小花園與魚菜共生，不等於所有植栽都接入同一系統。", { size: 9.5, gap: 4 });

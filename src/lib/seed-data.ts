@@ -35,7 +35,7 @@ export const PRINTABLE_RESOURCES: PrintableResource[] = [
     category: "列印素材",
     href: "/printables/復興探索手冊_學生版.pdf",
     format: "PDF",
-    note: "A5 直式任務書：八關題目、現場觀察欄、碎片收集頁與終章排列題。活動前影印，每組一本。",
+    note: "A5 直式線索卡手冊：八張線索卡（題目資料只印在這裡）、作答欄、現場觀察欄、碎片收集頁與終章排列題。活動前影印，每組一本。",
   },
   {
     id: "teacher-key",
@@ -265,13 +265,13 @@ export const SEED_MISSIONS: SeedMission[] = [
     code: "M04",
     title: "被竄改的時間軸",
     subtitle: "民國／西元換算與區間約束",
-    locationName: "校史館外廊（含閉館數位檔案替代站）",
+    locationName: "校史館外廊（休館時以手冊線索卡 M04 替代）",
     locationNote: "示意定位：校史紀念與時間典藏展示區",
     mapX: 576,
     mapY: 492,
     storyBackground:
       "檔案盒裡的八張事件卡，日期欄都被刮除了，只留下部分檔案標記。有人把「創辦」寫成「遷址」，也有人把「增設中學」和「成立實驗高中」當成同一件事。請用民國年換算規則推理，把年份補回並依時間排序。",
-    safetyNotice: "若校史館未開放，請直接使用畫面中的「數位校史檔案替代室」完成任務，切勿推門或打擾館務人員。",
+    safetyNotice: "若校史館未開放，請直接使用手冊線索卡 M04 的校史檔案摘錄完成任務，切勿推門或打擾館務人員。",
     puzzleType: "timeline-years",
     promptText:
       "把八個事件由最早排到最晚，並在每張卡填入換算後的西元年份。只排序而不填年份，視為未完成。",

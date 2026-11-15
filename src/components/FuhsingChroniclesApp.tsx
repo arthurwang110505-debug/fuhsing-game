@@ -1209,7 +1209,6 @@ export default function FuhsingChroniclesApp() {
                   settings={settings}
                   isSolved={completedSet.has(activeMission.id)}
                   solvedDetail={solvedDetails[activeMission.id]}
-                  allSolvedDetails={solvedDetails}
                   hintsRevealed={
                     session.hintsUsed?.[String(activeMission.id)] ?? 0
                   }
@@ -1318,7 +1317,7 @@ export default function FuhsingChroniclesApp() {
             <div className="rounded-2xl border border-[#008250]/35 bg-[#EAF0FA] p-4 space-y-1.5">
               <p className="text-xs font-bold text-[#008250]">活動安全守則</p>
               <p className="text-xs leading-relaxed text-[#213155]/85">
-                本遊戲設計遵循臺北市私立復興實驗高級中學校園安全規範：禁止奔跑、攀爬、跳躍，不可進入管制區或正在上課之教室，亦不可打擾老師、行政人員或拍攝其他學生。若校史館未開放，請直接使用關卡內的數位校史檔案作答。
+                本遊戲設計遵循臺北市私立復興實驗高級中學校園安全規範：禁止奔跑、攀爬、跳躍，不可進入管制區或正在上課之教室，亦不可打擾老師、行政人員或拍攝其他學生。若校史館未開放，請直接使用手冊線索卡 M04 的校史檔案摘錄作答。
               </p>
             </div>
 

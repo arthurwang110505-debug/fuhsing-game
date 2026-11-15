@@ -8,7 +8,7 @@ import type {
   SolvedMissionDetail,
 } from "@/types/game";
 import { MAX_HINT_STAGE } from "@/types/game";
-import { MissionPuzzleStage } from "./PuzzleStages";
+import AnswerSheet from "./AnswerSheet";
 import {
   Archive,
   ArrowLeft,
@@ -28,7 +28,6 @@ interface PuzzlePlayfieldProps {
   settings: GameSettings;
   isSolved: boolean;
   solvedDetail?: SolvedMissionDetail;
-  allSolvedDetails: Record<number, SolvedMissionDetail>;
   hintsRevealed: number;
   revealedHints: Partial<Record<HintStage, string>>;
   submitting: boolean;
@@ -46,7 +45,6 @@ export default function PuzzlePlayfield({
   settings,
   isSolved,
   solvedDetail,
-  allSolvedDetails,
   hintsRevealed,
   revealedHints,
   submitting,
@@ -122,13 +120,13 @@ export default function PuzzlePlayfield({
               <div className="flex items-center gap-2 text-sm font-semibold text-[#213155]">
                 <Archive className="h-4 w-4 text-[#103FA0]" />
                 {settings.historyMuseumOpen
-                  ? "目前設定：校史館開放中（亦可隨時查閱內建數位校史檔案）"
-                  : "目前設定：校史館休館中 — 已啟用數位校史替代檔案室"}
+                  ? "目前設定：校史館開放中（線索仍以手冊線索卡 M04 為準）"
+                  : "目前設定：校史館休館中 — 請使用手冊線索卡 M04 的校史檔案摘錄"}
               </div>
               <p className="mt-1 text-xs leading-relaxed text-[#213155]/80">
                 {settings.historyMuseumOpen
-                  ? "歡迎安靜觀察校史相關資訊，解謎時若需校對年份也可直接使用遊戲內的官方資料夾。"
-                  : "校史館未開放沒關係！進入關卡後系統將自動提供完整官方校史文獻，讓你可以安靜坐在安全區域順利通關。"}
+                  ? "歡迎安靜觀察校史相關資訊；年份換算與排序所需的資料都印在手冊線索卡 M04。"
+                  : "校史館未開放沒關係：手冊線索卡 M04 已收錄事件卡與校史檔案摘錄，可在安全區域安靜完成。"}
               </p>
             </div>
           )}
@@ -208,20 +206,18 @@ export default function PuzzlePlayfield({
       <div className="archive-card rounded-3xl p-5 sm:p-8 space-y-6">
         <div className="space-y-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9CF00]/15 px-3 py-1 text-xs font-semibold text-[#103FA0]">
-            互動解謎挑戰
+            紙本線索・系統作答
           </span>
           <h2 className="font-serif text-xl font-bold leading-snug text-[#213155] sm:text-2xl">
             {mission.promptText}
           </h2>
         </div>
 
-        <MissionPuzzleStage
+        <AnswerSheet
           mission={mission}
-          settings={settings}
           isSolved={isSolved}
           submitting={submitting}
           feedback={feedback}
-          allSolvedDetails={allSolvedDetails}
           onSubmitAnswer={onSubmitAnswer}
         />
       </div>
