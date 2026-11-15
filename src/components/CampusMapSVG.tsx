@@ -309,17 +309,6 @@ export default function CampusMapSVG({
             <circle cx="399" cy="608" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
             <text x="347" y="578" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">中學操場</text>
 
-            {/* Quiet courtyard with a bench (finish point) */}
-            <rect x="276" y="704" width="246" height="146" rx="36" fill="#B7D8BE" opacity=".55" />
-            <rect x="330" y="762" width="60" height="20" rx="4" fill="#C08552" />
-            <rect x="330" y="782" width="60" height="8" rx="3" fill="#A9713F" />
-            <rect x="338" y="790" width="6" height="16" rx="2" fill="#A9713F" />
-            <rect x="376" y="790" width="6" height="16" rx="2" fill="#A9713F" />
-            <g fill="#2E7D52">
-              <circle cx="430" cy="768" r="14" />
-              <circle cx="462" cy="792" r="17" />
-              <circle cx="494" cy="768" r="13" />
-            </g>
 
             {/* East wing: 慎思樓・校史館・行政處室 — 三棟連成一體（共用牆面，無縫連接） */}
             <rect x="530" y="58" width="92" height="800" rx="12" fill="url(#bldGrad)" />
