@@ -1,6 +1,9 @@
 import type { GameSettings, PublicMission, SolvedMissionDetail } from "@/types/game";
 import { FINAL_PUZZLE_DATA, SEED_MISSIONS, type SeedMission } from "./seed-data";
 
+/** 每開啟一階提示，該關扣 2 分（每關最多兩階提示） */
+export const HINT_PENALTY_POINTS = 2;
+
 /** Local-only game rules and seed data. No API, database, or server access is used. */
 export function getLocalMissions(): PublicMission[] {
   return SEED_MISSIONS.map((mission) => ({ ...mission }));
@@ -35,9 +38,25 @@ export function computeUnlockedMissionIds(
   ).map((mission) => mission.id);
 }
 
-export function computeTotalScore(completedMissions: number[], finalSolved: boolean): number {
+export function computeHintPenalty(completedMissions: number[], hintsUsed: Record<string, number> = {}): number {
+  const completed = new Set(completedMissions);
+  let hintCount = 0;
+  for (const [key, value] of Object.entries(hintsUsed)) {
+    const id = Number(key);
+    const used = Math.max(0, Math.min(2, Number(value) || 0));
+    if (completed.has(id)) hintCount += used;
+  }
+  return hintCount * HINT_PENALTY_POINTS;
+}
+
+export function computeTotalScore(
+  completedMissions: number[],
+  finalSolved: boolean,
+  hintsUsed: Record<string, number> = {}
+): number {
   const count = new Set(completedMissions.filter((id) => id >= 1 && id <= 8)).size;
-  return Math.min(100, count * 10 + (finalSolved ? 10 : 0) + (count === 8 && finalSolved ? 10 : 0));
+  const base = Math.min(100, count * 10 + (finalSolved ? 10 : 0) + (count === 8 && finalSolved ? 10 : 0));
+  return Math.max(0, base - computeHintPenalty(completedMissions, hintsUsed));
 }
 
 export function gradeMissionAnswer(

@@ -180,7 +180,7 @@ export default function PuzzlePlayfield({
             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#103FA0]">
               檔案故事背景
             </h2>
-            <p className="text-base leading-relaxed text-[#213155]/90">
+            <p className="font-hand text-base leading-relaxed text-[#213155]/90">
               {mission.storyBackground}
             </p>
           </div>
@@ -919,16 +919,18 @@ export default function PuzzlePlayfield({
         </button>
       </form>
 
-      {/* SCREEN 08: HINT INTERFACE (TWO-STAGE, ZERO PENALTY) */}
+      {/* SCREEN 08: HINT INTERFACE (TWO-STAGE, WITH SCORE PENALTY) */}
       <div className="archive-card rounded-3xl p-5 sm:p-6 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-[#103FA0]" />
             <h3 className="text-sm font-bold text-[#213155]">
-              探索提示匣（使用提示完全不扣分）
+              探索提示匣（每開啟一階提示，該關 −2 分）
             </h3>
           </div>
-          <span className="text-xs text-[#008250]">已開啟 {hintsRevealed} / 2 階提示</span>
+          <span className={hintsRevealed > 0 ? "text-xs font-semibold text-[#B98A00]" : "text-xs text-[#008250]"}>
+            已開啟 {hintsRevealed} / 2 階提示{hintsRevealed > 0 ? `（本關 −${hintsRevealed * 2} 分）` : ""}
+          </span>
         </div>
 
         <div className="space-y-3">
@@ -944,7 +946,7 @@ export default function PuzzlePlayfield({
               className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl border border-[#103FA0]/40 bg-[#EAF0FA] px-4 py-2.5 text-sm font-semibold text-[#103FA0] transition hover:bg-[#103FA0]/10"
             >
               <HelpCircle className="h-4 w-4" />
-              {hintsRevealed >= 1 ? "重新載入已開啟的第一階段提示" : "需要一點靈感嗎？開啟第一個提示（不扣分）"}
+              {hintsRevealed >= 1 ? "重新載入已開啟的第一階段提示" : "需要一點靈感嗎？開啟第一個提示（該關 −2 分）"}
             </button>
           )}
 
@@ -961,7 +963,7 @@ export default function PuzzlePlayfield({
                 className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl border border-[#008250]/40 bg-[#EAF0FA] px-4 py-2.5 text-sm font-semibold text-[#008250] transition hover:bg-[#008250]/10"
               >
                 <HelpCircle className="h-4 w-4" />
-                開啟第二階段提示（不扣分）
+                開啟第二階段提示（再 −2 分）
               </button>
             )
           )}

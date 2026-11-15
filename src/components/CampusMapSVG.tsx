@@ -179,19 +179,31 @@ export default function CampusMapSVG({
             viewBox="0 0 640 990"
             className="block h-auto w-full select-none"
             role="img"
-            aria-label="依照參考配置重繪的復興校園平面示意圖，含勤學樓、成賢樓、慎思樓、校史館、花園、操場與行政處室樓層"
+            aria-label="復興校園平面示意圖，含藍色跑道、鐘樓、勤學樓、成賢樓、慎思樓、校史館、小花園、操場與行政處室"
           >
             <defs>
               <pattern id="mapDots" width="12" height="12" patternUnits="userSpaceOnUse">
                 <circle cx="1.5" cy="1.5" r="1" fill="#B9C9E4" opacity=".42" />
               </pattern>
-              <linearGradient id="mapFrame" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#2E4E8F" />
-                <stop offset="1" stopColor="#16294D" />
+              <linearGradient id="bldGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#3B5C9E" />
+                <stop offset="1" stopColor="#24406F" />
               </linearGradient>
-              <linearGradient id="mapWing" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="#4C79CC" />
-                <stop offset="1" stopColor="#2F5CB0" />
+              <linearGradient id="bldAlt" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#2F4A7C" />
+                <stop offset="1" stopColor="#1D3057" />
+              </linearGradient>
+              <linearGradient id="trackGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#3C79E4" />
+                <stop offset="1" stopColor="#2456B8" />
+              </linearGradient>
+              <linearGradient id="gardenGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#52B07B" />
+                <stop offset="1" stopColor="#2F8557" />
+              </linearGradient>
+              <linearGradient id="courtGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#5080D2" />
+                <stop offset="1" stopColor="#3A62B4" />
               </linearGradient>
               <filter id="pinGlow" x="-60%" y="-60%" width="220%" height="220%">
                 <feGaussianBlur stdDeviation="4" result="blur" />
@@ -202,63 +214,147 @@ export default function CampusMapSVG({
               </filter>
             </defs>
 
-            {/* Soft drafting-paper field and the building's long outer wing */}
+            {/* Paper field + campus ground */}
             <rect width="640" height="990" fill="#F2F6FD" />
             <rect width="640" height="990" fill="url(#mapDots)" />
-            <rect x="76" y="18" width="501" height="814" rx="10" fill="url(#mapFrame)" filter="url(#mapShadow)" />
-            <rect x="10" y="70" width="68" height="440" rx="8" fill="#2E4E8F" />
-            <path d="M91 77 H181 Q193 77 193 89 V975 H29 V843 H79 V89 Q79 77 91 77Z" fill="url(#mapWing)" />
-            <path d="M30 976 H544" fill="none" stroke="#D9A500" strokeWidth="6" strokeLinecap="round" />
+            <rect x="22" y="36" width="596" height="922" rx="26" fill="#E9EFFA" stroke="#C9D6EC" strokeWidth="2" filter="url(#mapShadow)" />
 
-            {/* Building names */}
-            <text x="326" y="55" textAnchor="middle" fill="#FFFFFF" fontSize="24" fontWeight="700" letterSpacing="2">勤學樓</text>
-            <text x="44" y="240" textAnchor="middle" fill="#FFFFFF" fontSize="22" fontWeight="700" writingMode="tb">成賢樓</text>
-            <text x="41" y="921" textAnchor="start" fill="#FFFFFF" fontSize="14" fontWeight="600">鐘樓</text>
+            {/* West column: Chengxian Building (vertical) */}
+            <rect x="28" y="108" width="110" height="316" rx="10" fill="url(#bldGrad)" />
+            <g fill="#93ACD9" opacity=".85">
+              {[0, 1, 2, 3, 4].map((row) =>
+                [0, 1].map((col) => (
+                  <rect key={`c-${row}-${col}`} x={76 + col * 28} y={132 + row * 52} width="22" height="26" rx="3" />
+                ))
+              )}
+            </g>
+            <text x="52" y="148" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="3">成賢樓</text>
 
-            {/* North passage and the small garden court */}
-            <rect x="191" y="77" width="312" height="59" rx="5" fill="#46669F" />
-            <rect x="186" y="135" width="314" height="212" rx="54" fill="#2E8B57" />
-            <text x="343" y="239" textAnchor="middle" fill="#FFFFFF" fontSize="24" fontWeight="600">小花園</text>
+            {/* West lawn strip */}
+            <rect x="28" y="446" width="110" height="252" rx="44" fill="url(#gardenGrad)" opacity=".9" />
+            <g fill="#2E7D52">
+              <circle cx="54" cy="486" r="14" />
+              <circle cx="98" cy="502" r="17" />
+            </g>
+            <g fill="#E5879B">
+              <circle cx="46" cy="548" r="3" />
+              <circle cx="72" cy="566" r="3" />
+              <circle cx="102" cy="552" r="3" />
+              <circle cx="58" cy="606" r="3" />
+              <circle cx="90" cy="622" r="3" />
+              <circle cx="116" cy="600" r="3" />
+            </g>
+            <rect x="79" y="698" width="12" height="26" rx="5" fill="#DDE5F2" />
 
-            {/* Central green passage, walls, and basement stairs */}
-            <path d="M218 361 Q218 344 235 344 H449 Q466 344 466 361 V490 Q466 513 444 513 H237 Q218 513 218 494Z" fill="#2E8B57" />
-            <rect x="193" y="345" width="28" height="159" rx="7" fill="#46669F" />
-            <text x="207" y="388" textAnchor="middle" fill="#FFFFFF" fontSize="12" fontWeight="600" writingMode="tb">下B1的階梯</text>
-            <rect x="461" y="349" width="28" height="160" rx="7" fill="#46669F" />
-            <text x="475" y="392" textAnchor="middle" fill="#FFFFFF" fontSize="12" fontWeight="600" writingMode="tb">下B1的階梯</text>
-            <rect x="322" y="348" width="25" height="69" rx="4" fill="#16294D" />
-            <rect x="322" y="441" width="25" height="72" rx="4" fill="#16294D" />
-            <text x="334.5" y="387" textAnchor="middle" fill="#FFFFFF" fontSize="14" writingMode="tb">牆</text>
-            <text x="334.5" y="480" textAnchor="middle" fill="#FFFFFF" fontSize="14" writingMode="tb">牆</text>
-            <rect x="217" y="510" width="247" height="25" rx="6" fill="#46669F" />
-            <text x="340.5" y="528" textAnchor="middle" fill="#FFFFFF" fontSize="15" fontWeight="600">階梯</text>
+            {/* Bell tower plaza (west column, south) */}
+            <rect x="28" y="722" width="114" height="226" rx="18" fill="#E3E9F5" />
+            <rect x="58" y="798" width="52" height="120" rx="6" fill="#B4553F" />
+            <rect x="52" y="794" width="64" height="12" rx="5" fill="#8E3E2E" />
+            <path d="M64 794 L84 766 L104 794 Z" fill="#8E3E2E" />
+            <rect x="70" y="804" width="28" height="26" rx="11" fill="#8E3E2E" />
+            <circle cx="84" cy="817" r="7" fill="#E3B505" />
+            <circle cx="84" cy="856" r="10" fill="#F7E9C8" stroke="#8E3E2E" strokeWidth="2.5" />
+            <path d="M84 850 V856 L89 859" stroke="#213155" strokeWidth="2" fill="none" strokeLinecap="round" />
+            <rect x="38" y="900" width="32" height="12" rx="5" fill="#D9A500" opacity=".85" />
+            <text x="85" y="940" textAnchor="middle" fill="#213155" fontSize="20" fontWeight="700" letterSpacing="3">鐘樓</text>
 
-            {/* Primary and middle-school playgrounds with the connecting stair */}
-            <rect x="217" y="535" width="259" height="155" rx="38" fill="#3D6DB8" />
-            <text x="346" y="615" textAnchor="middle" fill="#FFFFFF" fontSize="23" fontWeight="600">小學操場</text>
-            <rect x="216" y="690" width="253" height="33" rx="6" fill="#46669F" />
-            <text x="342.5" y="712" textAnchor="middle" fill="#FFFFFF" fontSize="15" fontWeight="600">階梯</text>
-            <rect x="213" y="723" width="263" height="155" rx="42" fill="#3D6DB8" />
-            <text x="344.5" y="811" textAnchor="middle" fill="#FFFFFF" fontSize="23" fontWeight="600">中學操場</text>
-            <rect x="192" y="534" width="24" height="333" rx="7" fill="#46669F" />
-            <text x="204" y="566" textAnchor="middle" fill="#FFFFFF" fontSize="11" fontWeight="600" writingMode="tb">上到藍色跑道的階梯</text>
+            {/* Blue running track through the middle, west of the main campus */}
+            <rect x="152" y="100" width="110" height="780" rx="55" fill="url(#trackGrad)" />
+            <rect x="161" y="109" width="92" height="762" rx="46" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
+            <rect x="167" y="115" width="80" height="750" rx="40" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
+            <rect x="173" y="121" width="68" height="738" rx="34" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".5" />
+            <rect x="178" y="126" width="58" height="728" rx="29" fill="#5FA268" stroke="#FFFFFF" strokeWidth="2" opacity=".95" />
+            <path d="M152 856 V872 M152 108 V124" stroke="#FFFFFF" strokeWidth="3" opacity=".7" />
+            <text x="207" y="452" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="6" opacity=".95">藍色跑道</text>
 
-            {/* East wing: museum, building name, and the three office floors */}
-            <rect x="518" y="73" width="50" height="158" rx="8" fill="#46669F" />
-            <text x="543" y="94" textAnchor="middle" fill="#FFFFFF" fontSize="13" fontWeight="600" writingMode="tb">校史館在七樓</text>
-            <text x="542" y="354" textAnchor="middle" fill="#FFFFFF" fontSize="23" fontWeight="600" writingMode="tb">慎思樓</text>
-            <rect x="524" y="560" width="44" height="168" rx="8" fill="#46669F" />
-            <text x="546" y="580" textAnchor="middle" fill="#FFFFFF" fontSize="13" fontWeight="600" writingMode="tb">學務處：4樓</text>
-            <rect x="518" y="741" width="52" height="39" rx="6" fill="#46669F" />
-            <text x="544" y="757" textAnchor="middle" fill="#FFFFFF" fontSize="9" fontWeight="700"><tspan x="544">教務處</tspan><tspan x="544" dy="13">5樓</tspan></text>
-            <rect x="518" y="786" width="52" height="39" rx="6" fill="#46669F" />
-            <text x="544" y="802" textAnchor="middle" fill="#FFFFFF" fontSize="9" fontWeight="700"><tspan x="544">輔導室</tspan><tspan x="544" dy="13">6樓</tspan></text>
+            {/* Qinxue Building (top of the main campus) */}
+            <rect x="268" y="52" width="262" height="16" rx="8" fill="#1B2F5C" />
+            <rect x="276" y="62" width="246" height="128" rx="12" fill="url(#bldGrad)" />
+            <g fill="#93ACD9" opacity=".85">
+              {[0, 1].map((row) =>
+                [0, 1, 2, 3, 4, 5, 6, 7].map((col) => (
+                  <rect key={`q-${row}-${col}`} x={290 + col * 28} y={88 + row * 32} width="20" height="22" rx="3" />
+                ))
+              )}
+            </g>
+            <text x="399" y="176" textAnchor="middle" fill="#FFFFFF" fontSize="24" fontWeight="700" letterSpacing="3">勤學樓</text>
 
-            {/* Southern flower bed and guard room */}
-            <rect x="298" y="885" width="90" height="23" rx="4" fill="#D9A500" />
-            <text x="343" y="901" textAnchor="middle" fill="#213155" fontSize="12" fontWeight="600">花圃</text>
-            <rect x="388" y="925" width="30" height="50" rx="4" fill="#D9A500" />
-            <text x="403" y="948" textAnchor="middle" fill="#213155" fontSize="7" fontWeight="600" writingMode="tb">警衛室</text>
+            {/* Small garden courtyard */}
+            <rect x="276" y="216" width="246" height="130" rx="44" fill="url(#gardenGrad)" />
+            <g fill="#2E7D52">
+              <circle cx="318" cy="288" r="14" />
+              <circle cx="352" cy="278" r="18" />
+              <circle cx="386" cy="290" r="15" />
+              <circle cx="420" cy="280" r="18" />
+              <circle cx="454" cy="288" r="14" />
+            </g>
+            <g fill="#E5879B">
+              <circle cx="300" cy="318" r="3" />
+              <circle cx="368" cy="322" r="3" />
+              <circle cx="436" cy="314" r="3" />
+              <circle cx="486" cy="320" r="3" />
+            </g>
+            <text x="360" y="252" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">小花園</text>
+
+            {/* School playgrounds */}
+            <rect x="276" y="372" width="246" height="140" rx="28" fill="url(#courtGrad)" />
+            <path d="M399 384 V500" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <circle cx="399" cy="442" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <text x="347" y="412" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">小學操場</text>
+            <rect x="276" y="538" width="246" height="140" rx="28" fill="url(#courtGrad)" />
+            <path d="M399 550 V666" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <circle cx="399" cy="608" r="24" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".45" />
+            <text x="347" y="578" textAnchor="middle" fill="#FFFFFF" fontSize="21" fontWeight="600" letterSpacing="2">中學操場</text>
+
+            {/* Quiet courtyard with a bench (finish point) */}
+            <rect x="276" y="704" width="246" height="146" rx="36" fill="#B7D8BE" opacity=".55" />
+            <rect x="330" y="762" width="60" height="20" rx="4" fill="#C08552" />
+            <rect x="330" y="782" width="60" height="8" rx="3" fill="#A9713F" />
+            <rect x="338" y="790" width="6" height="16" rx="2" fill="#A9713F" />
+            <rect x="376" y="790" width="6" height="16" rx="2" fill="#A9713F" />
+            <g fill="#2E7D52">
+              <circle cx="430" cy="768" r="14" />
+              <circle cx="462" cy="792" r="17" />
+              <circle cx="494" cy="768" r="13" />
+            </g>
+
+            {/* East wing: Shensi Building, History Museum, Administration */}
+            <rect x="534" y="62" width="84" height="336" rx="10" fill="url(#bldGrad)" />
+            <g fill="#93ACD9" opacity=".85">
+              {[0, 1, 2, 3, 4].map((row) => (
+                <rect key={`s-${row}`} x={572} y={92 + row * 56} width="34" height="26" rx="3" />
+              ))}
+            </g>
+            <text x="549" y="130" textAnchor="middle" fill="#FFFFFF" fontSize="20" fontWeight="700" writingMode="tb" letterSpacing="3">慎思樓</text>
+            <rect x="534" y="424" width="84" height="120" rx="10" fill="url(#bldAlt)" />
+            <rect x="534" y="424" width="84" height="12" rx="6" fill="#E3B505" />
+            <circle cx="576" cy="458" r="10" fill="none" stroke="#E3B505" strokeWidth="2.5" />
+            <text x="576" y="532" textAnchor="middle" fill="#FFFFFF" fontSize="15" fontWeight="700" letterSpacing="1">校史館</text>
+            <rect x="534" y="570" width="84" height="280" rx="10" fill="url(#bldGrad)" />
+            <g fill="#93ACD9" opacity=".85">
+              {[0, 1, 2, 3].map((row) => (
+                <rect key={`a-${row}`} x={572} y={616 + row * 52} width="34" height="24" rx="3" />
+              ))}
+            </g>
+            <text x="549" y="612" textAnchor="middle" fill="#FFFFFF" fontSize="17" fontWeight="700" writingMode="tb" letterSpacing="3">行政處室</text>
+
+            {/* Path from the bell plaza toward the south gate */}
+            <rect x="142" y="896" width="202" height="8" rx="4" fill="#DDE5F2" />
+
+            {/* South gate, guard post and the golden front road */}
+            <rect x="348" y="882" width="84" height="12" rx="4" fill="#223B6E" />
+            <rect x="352" y="894" width="14" height="48" rx="4" fill="#223B6E" />
+            <rect x="414" y="894" width="14" height="48" rx="4" fill="#223B6E" />
+            <rect x="446" y="902" width="42" height="40" rx="5" fill="url(#bldAlt)" />
+            <rect x="454" y="912" width="10" height="10" rx="2" fill="#93ACD9" />
+            <rect x="470" y="912" width="10" height="10" rx="2" fill="#93ACD9" />
+            <rect x="306" y="912" width="34" height="12" rx="5" fill="#D9A500" opacity=".85" />
+            <g fill="#2E7D52">
+              <circle cx="176" cy="912" r="13" />
+              <circle cx="232" cy="918" r="15" />
+              <circle cx="546" cy="908" r="13" />
+            </g>
+            <path d="M30 952 H610" fill="none" stroke="#D9A500" strokeWidth="6" strokeLinecap="round" />
 
             {/* Compact numbered mission markers */}
             {missions.map((mission) => {
@@ -298,7 +394,7 @@ export default function CampusMapSVG({
         {/* Schematic Map Disclaimer Overlay */}
         <div className="border-t border-[#103FA0]/15 bg-white/92 px-4 py-2 text-[11px] text-[#213155]/65 flex flex-wrap items-center justify-between gap-2">
           <span>
-            ※ 依參考圖以 SVG 重新繪製，未直接嵌入原圖；非比例尺導航圖，處室樓層依指定資訊標示。
+            ※ 依參考位置繪製之校園示意圖，建築配置為大概位置，非精確平面圖。
           </span>
           <span className="text-[#103FA0]">點擊任一發光編號節點查看任務</span>
         </div>

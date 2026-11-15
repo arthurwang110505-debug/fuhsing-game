@@ -89,7 +89,7 @@ export default function MissionCompleteModal({
           <h2 className="mt-1.5 font-serif text-2xl font-bold text-[#213155] sm:text-3xl">
             獲得記憶碎片：『{solvedDetail.fragmentName}』
           </h2>
-          <p className="mt-2 max-w-md font-serif text-sm italic text-[#103FA0]">
+          <p className="mt-2 max-w-md font-hand text-base italic text-[#103FA0]">
             「{solvedDetail.fragmentPoem}」
           </p>
         </div>
