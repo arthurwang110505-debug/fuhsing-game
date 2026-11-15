@@ -8,6 +8,10 @@
 > - 已補齊 8 張任務場景圖＋序章主視覺（AI 生成，標示非實景）。
 > - 已新增 Supabase 雲端存檔（跨裝置）與**組隊遊玩**（隊伍代碼、共享進度、即時同步、團隊排行榜），並保留離線單機模式。P1-3「存檔匯出／匯入」由雲端存檔大幅緩解。
 > - 尚未處理：P0-1 每秒寫入 Local Storage、P0-2 主視覺 2.4MB 壓縮、P1-1 SW 預快取、CI 流水線、架構拆分等。
+>
+> **進度更新（2026-11-15）**：
+> - 八關改為困難模式（規格見 `HARD_MODE_DESIGN.md`）：八種獨立互動題型、三階提示（每階 −1 分）、概念條件式短答評分、錯誤回饋不洩題，學生／教師 PDF 已重新產生。
+> - 修正 `next build` 失敗：`scripts/generate-booklets.ts` 需要的 `pdfkit`、`@types/pdfkit` 與 `@expo-google-fonts/lxgw-wenkai-tc` 已列入 `devDependencies`（先前未宣告，導致型別檢查失敗、Vercel 建置紅燈）。
 
 ---
 

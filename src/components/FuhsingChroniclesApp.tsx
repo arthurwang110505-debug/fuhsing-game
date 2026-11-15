@@ -7,6 +7,7 @@ import type {
   GameScreen,
   GameSession,
   GameSettings,
+  HintStage,
   OfficialSourceItem,
   PlayMode,
   PublicMission,
@@ -23,6 +24,7 @@ import {
   computeTotalScore,
   computeUnlockedMissionIds,
   extractSolvedDetail,
+  getHintText,
   getLocalMissions,
   getLocalSettings,
   gradeFinalSeal,
@@ -99,7 +101,7 @@ export default function FuhsingChroniclesApp() {
   } | null>(null);
   const [revealedHints, setRevealedHints] = useState<{
     missionId: number;
-    hints: Partial<Record<1 | 2, string>>;
+    hints: Partial<Record<HintStage, string>>;
   }>({ missionId: 0, hints: {} });
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showSourcesModal, setShowSourcesModal] = useState(false);
@@ -398,7 +400,7 @@ export default function FuhsingChroniclesApp() {
     setScreen("mission-detail");
   };
 
-  const handleOpenHint = (stage: 1 | 2) => {
+  const handleOpenHint = (stage: HintStage) => {
     if (!session || !activeMission) return;
     const source = SEED_MISSIONS.find((mission) => mission.id === activeMission.id);
     if (!source) return;
@@ -414,7 +416,10 @@ export default function FuhsingChroniclesApp() {
     });
     setRevealedHints((previous) => ({
       missionId: activeMission.id,
-      hints: { ...(previous.missionId === activeMission.id ? previous.hints : {}), [stage]: stage === 1 ? source.hint1 : source.hint2 },
+      hints: {
+        ...(previous.missionId === activeMission.id ? previous.hints : {}),
+        [stage]: getHintText(source, stage),
+      },
     }));
   };
 

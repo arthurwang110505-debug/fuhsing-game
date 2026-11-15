@@ -36,17 +36,23 @@ const FONT_B = resolve("node_modules/@expo-google-fonts/lxgw-wenkai-tc/700Bold/L
 const MAP_PNG = resolve("printables/campus-map.png");
 
 // ---------- 題型資料（與 src/lib/seed-data.ts 的 payload 對應） ----------
-interface OptionItem { id: string; text: string }
-interface EvidenceQuestion { id: string; label: string; prompt: string; options: OptionItem[] }
-interface SlotItem { id: string; prefix: string; choices: string[]; desc: string }
-interface PairItem { id: string; label?: string; text?: string; title?: string }
-interface TimelineItem { id: string; eraTag: string; label: string }
+interface EvidenceCardItem { id: string; order: number; text: string; sourceKey: string; token?: string }
+interface EvidenceColumnItem { id: string; label: string; note: string }
+interface EvidenceSourceItem { title: string; url: string; excerpt: string }
+interface AcrosticSlotItem { id: string; label: string; requirement: string }
+interface AcrosticLineItem { id: string; lead: string; text: string }
+interface GridLeftItem { id: string; label: string }
+interface GridRightItem { id: string; text: string }
+interface TimelineItem { id: string; label: string; clue: string }
 interface ArchiveItem { period: string; heading: string; detail: string }
-interface SafetyQuestion { prompt: string; options: OptionItem[] }
-interface ScenarioItem { id: string; student: string; situation: string }
-interface OfficeItem { id: string; label: string; note: string }
-interface SynthPart { id: string; label: string; options: string[] }
-interface SynthQuestion { id: string; label: string; prompt: string; options?: string[]; subParts?: SynthPart[] }
+interface EmblemComponentItem { id: string; label: string; layer: string; order: number }
+interface EmblemMeaningItem { id: string; text: string; indexChar?: string }
+interface CycleNodeItem { id: string; label: string }
+interface CycleQuestionItem { id: string; label: string; prompt: string; placeholder?: string }
+interface OfficeRecordItem { id: string; main: string; aside: string }
+interface OfficeItem { id: string; label: string; note: string; quota?: number }
+interface CrosscheckItem { id: string; label: string; placeholder?: string; keep?: string }
+interface PassphraseItem { label: string; prompt: string }
 
 // ---------- 現場觀察題（紙本獨有） ----------
 const OBSERVATIONS: Record<number, { task: string; ref: string }> = {
@@ -127,125 +133,150 @@ function fieldBox(doc: Doc, title: string, bodyLines: string[], writeLineCount: 
 }
 
 // ---------- 各題型渲染 ----------
-function renderEvidenceGrid(doc: Doc, questions: EvidenceQuestion[]): void {
-  for (const q of questions) {
-    ensure(doc, 46);
-    doc.font("handb").fontSize(10.5).fillColor(BLUE).text(`${q.label}｜`, M, doc.y, { continued: true, width: CW });
-    doc.font("hand").fontSize(10).fillColor(INK).text(q.prompt, { width: CW, lineGap: 2 });
-    doc.y += 2;
-    for (const opt of q.options) {
-      const tag = opt.id.slice(-1).toUpperCase();
-      para(doc, `(${tag}) ${opt.text}`, { size: 9.5, gap: 3, x: M + 12, width: CW - 24 });
-    }
-    doc.y += 5;
-  }
+function letter(index: number): string {
+  return String.fromCharCode(65 + index);
 }
 
-function renderLogicChoice(doc: Doc, slots: SlotItem[]): void {
-  for (const s of slots) {
-    ensure(doc, 50);
-    doc.font("handb").fontSize(10.5).fillColor(INK).text(s.prefix, M, doc.y, { width: CW, lineGap: 2 });
-    para(doc, s.desc, { size: 9, color: MUTED, gap: 2 });
-    para(doc, `答案：＿＿＿＿　（選項：${s.choices.join("／")}）`, { size: 10, color: BLUE, gap: 6 });
+function renderEvidenceClassify(
+  doc: Doc,
+  columns: EvidenceColumnItem[],
+  cards: EvidenceCardItem[],
+  sources: EvidenceSourceItem[],
+  lockLabel?: string
+): void {
+  para(doc, `三個證據欄：${columns.map((c) => c.label).join("｜")}`, { size: 10, font: "handb", color: BLUE, gap: 5 });
+  for (const card of [...cards].sort((a, b) => a.order - b.order)) {
+    para(doc, `證詞 ${card.order}：${card.text}`, { size: 9.5, gap: 4, x: M + 6, width: CW - 12 });
   }
+  doc.y += 2;
+  para(doc, "可證實　＿＿＿＿＿＿＿＿＿＿＿＿", { size: 9.5, color: BLUE, gap: 3 });
+  para(doc, "與來源矛盾　＿＿＿＿＿＿＿＿＿＿", { size: 9.5, color: BLUE, gap: 3 });
+  para(doc, "資料未載　＿＿＿＿＿＿＿＿＿＿＿", { size: 9.5, color: BLUE, gap: 5 });
+  para(doc, lockLabel ?? "檔案鎖校驗字：＿＿＿＿＿＿", { size: 9.5, color: GOLD, gap: 4 });
+  para(doc, "理由（一句話說明未載與矛盾的差別）：", { size: 9, color: MUTED, gap: 2 });
+  writeLines(doc, 2);
+  para(doc, "可核對的官方來源：", { size: 9.5, font: "handb", color: BLUE, gap: 3 });
+  for (const source of sources) {
+    para(doc, `・${source.title}：${source.excerpt}`, { size: 8, color: MUTED, gap: 2, x: M + 6, width: CW - 12 });
+  }
+  doc.y += 3;
 }
 
-function renderMapMatching(doc: Doc, left: PairItem[], right: PairItem[], leftTitle: string, rightTitle: string): void {
-  para(doc, `左欄（${leftTitle}）　　　　　　　　　　右欄（${rightTitle}）`, { size: 9.5, font: "handb", color: BLUE, gap: 5 });
-  const colLeft = M + 2;
-  const colRight = M + CW / 2 + 4;
-  const halfW = CW / 2 - 10;
-  let yCursor = doc.y;
-  for (let i = 0; i < Math.max(left.length, right.length); i += 1) {
-    const l = left[i];
-    const r = right[i];
-    const tagL = String.fromCharCode(65 + i);
-    const tagR = String(i + 1);
-    if (l) {
-      doc.font("hand").fontSize(9.5).fillColor(INK);
-      const t = `${tagL}. ${l.label ?? l.text ?? ""}`;
-      const h = doc.heightOfString(t, { width: halfW, lineGap: 2 });
-      doc.text(t, colLeft, yCursor, { width: halfW, lineGap: 2 });
-      if (r) {
-        const t2 = `${tagR}. ${r.text ?? r.label ?? ""}`;
-        const h2 = doc.heightOfString(t2, { width: halfW, lineGap: 2 });
-        doc.text(t2, colRight, yCursor, { width: halfW, lineGap: 2 });
-        yCursor += Math.max(h, h2) + 8;
-      } else {
-        yCursor += h + 8;
-      }
-      continue;
-    }
-    if (r) {
-      const t2 = `${tagR}. ${r.text ?? r.label ?? ""}`;
-      doc.font("hand").fontSize(9.5).fillColor(INK);
-      const h2 = doc.heightOfString(t2, { width: halfW, lineGap: 2 });
-      doc.text(t2, colRight, yCursor, { width: halfW, lineGap: 2 });
-      yCursor += h2 + 8;
-    }
+function renderAcrostic(doc: Doc, slots: AcrosticSlotItem[], lines: AcrosticLineItem[]): void {
+  for (const slot of slots) {
+    para(doc, `【${slot.label}】${slot.requirement}`, { size: 9.5, font: "handb", gap: 2 });
+    para(doc, "選擇詩行：＿＿＿＿（填入詩行代號）", { size: 9.5, color: BLUE, gap: 6, x: M + 8, width: CW - 16 });
   }
-  doc.y = yCursor + 2;
-  ensure(doc, 26);
-  const pairs = left.map((_, i) => `${String.fromCharCode(65 + i)}→____`).join("　");
-  para(doc, `配對欄：${pairs}`, { size: 10, color: BLUE, gap: 8 });
+  doc.y += 2;
+  para(doc, "四段殘詩（含抄錄者加入的干擾句）：", { size: 10, font: "handb", color: BLUE, gap: 4 });
+  for (const line of lines) {
+    para(doc, `${line.id}. ${line.lead}${line.text}`, { size: 9.5, gap: 3, x: M + 8, width: CW - 16 });
+  }
+  doc.y += 3;
+  para(doc, "四字密令：＿＿　＿＿　＿＿　＿＿", { size: 11, color: GOLD, gap: 8 });
 }
 
-function renderTimelineSort(doc: Doc, items: TimelineItem[], archive: ArchiveItem[]): void {
-  para(doc, "任務卡（卡片不標年份，順序打亂）：", { size: 10, font: "handb", color: BLUE, gap: 4 });
-  items.forEach((item, i) => {
-    para(doc, `卡片 ${i + 1}　【${item.eraTag}】${item.label}`, { size: 9.5, gap: 4, x: M + 6, width: CW - 12 });
+function renderLogicGrid(
+  doc: Doc,
+  left: GridLeftItem[],
+  right: GridRightItem[],
+  clues: string[],
+  gridTitle: string
+): void {
+  para(doc, "線索：", { size: 10, font: "handb", color: BLUE, gap: 3 });
+  for (const clue of clues) {
+    para(doc, `・${clue}`, { size: 8.5, gap: 2, x: M + 6, width: CW - 12 });
+  }
+  doc.y += 4;
+  para(doc, `${gridTitle}：`, { size: 10, font: "handb", color: BLUE, gap: 4 });
+  right.forEach((item, index) => {
+    para(doc, `任務 ${letter(index)}：${item.text}`, { size: 8.5, gap: 2, x: M + 6, width: CW - 12 });
+  });
+  doc.y += 4;
+  para(doc, `配對欄（${left.map((item) => item.label).join("、")}）：`, { size: 9.5, color: BLUE, gap: 3 });
+  const blanks = left.map((item) => `${item.label}→____`).join("　");
+  para(doc, blanks, { size: 9.5, gap: 8, x: M + 6, width: CW - 12 });
+}
+
+function renderTimelineYears(doc: Doc, items: TimelineItem[], archive: ArchiveItem[], formula?: string): void {
+  para(doc, `換算規則：${formula ?? "民國年 + 1911 = 西元年"}`, { size: 9, color: MUTED, gap: 4 });
+  items.forEach((item) => {
+    para(doc, `事件 ${item.id}｜${item.label}（${item.clue}）　年份：＿＿＿＿`, { size: 9.5, gap: 4, x: M + 6, width: CW - 12 });
   });
   doc.y += 3;
   para(doc, "校史檔案（證據）：", { size: 10, font: "handb", color: BLUE, gap: 4 });
-  for (const a of archive) {
-    para(doc, `${a.period}　${a.heading}——${a.detail}`, { size: 8.5, color: MUTED, gap: 3, x: M + 6, width: CW - 12 });
+  for (const entry of archive) {
+    para(doc, `${entry.period}　${entry.heading}——${entry.detail}`, { size: 8.5, color: MUTED, gap: 3, x: M + 6, width: CW - 12 });
   }
   doc.y += 4;
-  ensure(doc, 30);
-  const blanks = Array.from({ length: 8 }, (_, i) => `${i + 1}→____`).join("　");
-  para(doc, `由最早到最晚排序（填卡片編號）：\n${blanks}`, { size: 10, color: BLUE, gap: 8 });
+  para(doc, "由最早到最晚排序（填事件代號）：", { size: 9.5, color: BLUE, gap: 3 });
+  para(doc, Array.from({ length: 8 }, (_, i) => `${i + 1}→____`).join("　"), { size: 9.5, gap: 8 });
 }
 
-function renderEco(doc: Doc, items: PairItem[], targets: PairItem[], safety: SafetyQuestion): void {
-  renderMapMatching(doc, items, targets, "概念卡", "說明卡");
-  doc.y += 2;
-  para(doc, `安全情境題：${safety.prompt}`, { size: 9.5, font: "handb", gap: 4 });
-  for (const opt of safety.options) {
-    const tag = opt.id.replace("safe-", "");
-    para(doc, `(${tag}) ${opt.text}`, { size: 9, gap: 3, x: M + 12, width: CW - 24 });
-  }
-  para(doc, "安全題答案：＿＿＿＿", { size: 10, color: BLUE, gap: 8 });
+function renderEmblem(
+  doc: Doc,
+  components: EmblemComponentItem[],
+  meanings: EmblemMeaningItem[],
+  codeLabel?: string
+): void {
+  para(doc, "第一階段：構件與意涵一對一配對", { size: 10, font: "handb", color: BLUE, gap: 3 });
+  components.forEach((component, index) => {
+    para(doc, `${component.label}（${component.layer}）→ ____`, { size: 9.5, gap: 3, x: M + 6, width: CW - 12 });
+  });
+  doc.y += 3;
+  para(doc, "意涵卡：", { size: 9.5, font: "handb", color: BLUE, gap: 3 });
+  meanings.forEach((meaning, index) => {
+    para(doc, `${index + 1}. ${meaning.text}`, { size: 8.5, gap: 2, x: M + 6, width: CW - 12 });
+  });
+  doc.y += 3;
+  para(doc, "第二階段：依外形→植物→數量→器物→造型→邊界讀取索引字", { size: 9.5, font: "handb", color: BLUE, gap: 3 });
+  para(doc, `${codeLabel ?? "第二層校驗詞"}：＿＿＿＿＿＿`, { size: 10, color: GOLD, gap: 8 });
 }
 
-function renderOffice(doc: Doc, scenarios: ScenarioItem[], offices: OfficeItem[]): void {
-  for (const sc of scenarios) {
-    para(doc, `${sc.student}：${sc.situation}`, { size: 9.5, gap: 5, x: M + 4, width: CW - 8 });
+function renderCycle(doc: Doc, nodes: CycleNodeItem[], questions: CycleQuestionItem[], factBoundary?: string): void {
+  para(doc, "概念卡（順序打亂，請排成循環）：", { size: 10, font: "handb", color: BLUE, gap: 3 });
+  nodes.forEach((node) => para(doc, `・${node.label}`, { size: 9.5, gap: 2, x: M + 6, width: CW - 12 }));
+  doc.y += 2;
+  para(doc, "循環順序：____ → ____ → ____ → ____（最後接回第一張）", { size: 9.5, color: BLUE, gap: 6 });
+  for (const question of questions) {
+    para(doc, `${question.label}：${question.prompt}`, { size: 9.5, font: "handb", gap: 2 });
+    writeLines(doc, 2);
+  }
+  if (factBoundary) para(doc, factBoundary, { size: 8, color: MUTED, gap: 6 });
+}
+
+function renderOfficeQuota(doc: Doc, records: OfficeRecordItem[], offices: OfficeItem[]): void {
+  for (const record of records) {
+    para(doc, `檔案 ${record.id}｜主要待辦：${record.main}（順便想問：${record.aside}）`, {
+      size: 9,
+      gap: 3,
+      x: M + 4,
+      width: CW - 8,
+    });
   }
   doc.y += 2;
-  for (const o of offices) {
-    para(doc, `．${o.label}——${o.note}`, { size: 9, color: MUTED, gap: 3, x: M + 6, width: CW - 12 });
+  for (const office of offices) {
+    para(doc, `．${office.label}（配額 ${office.quota ?? 2} 件）——${office.note}`, { size: 8.5, color: MUTED, gap: 2, x: M + 6, width: CW - 12 });
   }
   doc.y += 3;
-  const pairs = scenarios.map((sc) => `${sc.student.replace("檔案 ", "")}→____`).join("　");
-  para(doc, `配對欄（填處室名稱）：\n${pairs}`, { size: 10, color: BLUE, gap: 8 });
+  para(doc, "配對欄（填處室名稱，每處室兩件）：", { size: 9.5, color: BLUE, gap: 3 });
+  para(doc, records.map((record) => `${record.id}→____`).join("　"), { size: 9.5, gap: 8 });
 }
 
-function renderFinalSynthesis(doc: Doc, questions: SynthQuestion[]): void {
-  for (const q of questions) {
-    ensure(doc, 42);
-    doc.font("handb").fontSize(10).fillColor(BLUE).text(`${q.label}｜`, M, doc.y, { continued: true, width: CW });
-    doc.font("hand").fontSize(9.5).fillColor(INK).text(q.prompt, { width: CW, lineGap: 2 });
-    doc.y += 2;
-    if (q.options) {
-      para(doc, `選項：${q.options.join("　")}`, { size: 9, gap: 3, x: M + 12, width: CW - 24 });
-      para(doc, "答案：＿＿＿＿＿＿", { size: 10, color: BLUE, gap: 7 });
-    }
-    for (const part of q.subParts ?? []) {
-      para(doc, `・${part.label}　選項：${part.options.join("　")}`, { size: 9, gap: 3, x: M + 12, width: CW - 24 });
-      para(doc, "答案：＿＿＿＿＿＿", { size: 10, color: BLUE, gap: 6 });
-    }
-    doc.y += 2;
-  }
+function renderFinalCrosscheck(
+  doc: Doc,
+  checks: CrosscheckItem[],
+  passphrase?: PassphraseItem,
+  promises: string[] = []
+): void {
+  checks.forEach((check, index) => {
+    para(doc, `${index + 1}. ${check.label}：＿＿＿＿＿＿（${check.keep ?? ""}）`, { size: 9.5, gap: 5 });
+  });
+  doc.y += 2;
+  para(doc, passphrase?.label ?? "終章口令", { size: 10, font: "handb", color: GOLD, gap: 2 });
+  para(doc, passphrase?.prompt ?? "", { size: 9, color: MUTED, gap: 3 });
+  para(doc, promises.map((promise) => `${promise.slice(0, 3)}……`).join("　"), { size: 8.5, color: MUTED, gap: 4 });
+  para(doc, "終章口令：＿＿＿＿＿＿＿＿", { size: 10.5, color: GOLD, gap: 8 });
 }
 
 // ---------- 頁尾 ----------
@@ -291,7 +322,7 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
   }
   doc.y = PAGE_H - 110;
   para(doc, "臺北市私立復興實驗高級中學", { size: 10, color: MUTED, gap: 2, x: M, width: CW });
-  para(doc, "適用 7–9 年級・建議 2–4 人一組・全程約 50–60 分鐘", { size: 9, color: MUTED, gap: 0, x: M, width: CW });
+  para(doc, "適用 7–9 年級・建議 2–4 人一組・困難模式全程約 60 分鐘", { size: 9, color: MUTED, gap: 0, x: M, width: CW });
 
   // 怎麼玩
   doc.addPage();
@@ -316,7 +347,7 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
   for (const r of rules) para(doc, r, { size: 10, gap: 6 });
   doc.y += 4;
   heading(doc, "評分方式", GOLD);
-  para(doc, "系統計分 100 分（八關）＋ 現場觀察欄 20 分（由老師抽查或小組互評）＋ 終章排列 10 分。系統內每開啟一階提示，該關 −2 分（每關最多兩階）。觀察欄的重點是觀察過程，不比對標準答案。", { size: 10, gap: 6 });
+  para(doc, "系統計分 100 分（八關＋終章）＋ 現場觀察欄 20 分（由老師抽查或小組互評）。系統內每開啟一階提示，該關 −1 分（每關最多三階）。觀察欄的重點是觀察過程，不比對標準答案。", { size: 10, gap: 6 });
 
   // 地圖
   doc.addPage();
@@ -359,44 +390,54 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
     // 題目
     para(doc, m.promptText, { size: 9.5, font: "handb", gap: 6 });
     const payload = m.puzzlePayload as unknown as {
-      questions?: EvidenceQuestion[];
-      slots?: SlotItem[];
-      leftItems?: PairItem[];
-      rightItems?: PairItem[];
-      items?: (TimelineItem | PairItem)[];
+      columns?: EvidenceColumnItem[];
+      cards?: EvidenceCardItem[];
+      sources?: EvidenceSourceItem[];
+      lockLabel?: string;
+      slots?: AcrosticSlotItem[];
+      lines?: AcrosticLineItem[];
+      leftItems?: GridLeftItem[];
+      rightItems?: GridRightItem[];
+      clues?: string[];
+      formula?: string;
+      items?: TimelineItem[];
       museumFallbackArchive?: ArchiveItem[];
-      targets?: PairItem[];
-      safetyQuestion?: SafetyQuestion;
-      scenarios?: ScenarioItem[];
+      components?: EmblemComponentItem[];
+      meanings?: EmblemMeaningItem[];
+      codeLabel?: string;
+      nodes?: CycleNodeItem[];
+      questions?: CycleQuestionItem[];
+      factBoundary?: string;
+      records?: OfficeRecordItem[];
       offices?: OfficeItem[];
+      checks?: CrosscheckItem[];
+      passphrase?: PassphraseItem;
+      promises?: string[];
     };
     switch (m.puzzleType) {
-      case "evidence-grid":
-        renderEvidenceGrid(doc, payload.questions ?? []);
+      case "evidence-classify":
+        renderEvidenceClassify(doc, payload.columns ?? [], payload.cards ?? [], payload.sources ?? [], payload.lockLabel);
         break;
-      case "logic-choice":
-        renderLogicChoice(doc, payload.slots ?? []);
+      case "acrostic-select":
+        renderAcrostic(doc, payload.slots ?? [], payload.lines ?? []);
         break;
-      case "map-matching":
-        renderMapMatching(
-          doc,
-          payload.leftItems ?? [],
-          payload.rightItems ?? [],
-          m.id === 5 ? "構件／特徵" : "樓舍／館舍",
-          m.id === 5 ? "象徵說明" : "名稱線索"
-        );
+      case "logic-grid":
+        renderLogicGrid(doc, payload.leftItems ?? [], payload.rightItems ?? [], payload.clues ?? [], "六座空間與任務卡");
         break;
-      case "timeline-sort":
-        renderTimelineSort(doc, (payload.items ?? []) as TimelineItem[], payload.museumFallbackArchive ?? []);
+      case "timeline-years":
+        renderTimelineYears(doc, payload.items ?? [], payload.museumFallbackArchive ?? [], payload.formula);
         break;
-      case "eco-matching":
-        renderEco(doc, payload.items ?? [], payload.targets ?? [], payload.safetyQuestion as SafetyQuestion);
+      case "emblem-layers":
+        renderEmblem(doc, payload.components ?? [], payload.meanings ?? [], payload.codeLabel);
         break;
-      case "office-matching":
-        renderOffice(doc, payload.scenarios ?? [], payload.offices ?? []);
+      case "cycle-flow":
+        renderCycle(doc, payload.nodes ?? [], payload.questions ?? [], payload.factBoundary);
         break;
-      case "final-synthesis":
-        renderFinalSynthesis(doc, (payload.questions ?? []) as unknown as SynthQuestion[]);
+      case "office-quota":
+        renderOfficeQuota(doc, payload.records ?? [], payload.offices ?? []);
+        break;
+      case "final-crosscheck":
+        renderFinalCrosscheck(doc, payload.checks ?? [], payload.passphrase, payload.promises ?? []);
         break;
     }
 
@@ -510,13 +551,13 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
   heading(doc, "課程建議");
   for (const s of [
     "・建議 2–4 人一組，每組一本學生手冊；手機每組至少一台可輸入答案即可。",
-    "・節奏建議：集合說明 5 分鐘、戶外探索 30–40 分鐘、終章與檢討 10–15 分鐘。",
+    "・節奏建議（合計約 60 分鐘）：集合說明 5 分、M01 7 分、M02 6 分、M03 8 分、M04 8 分、M05 7 分、M06 7 分、M07 8 分、M08 9 分、終章與檢討 5 分。",
     "・移動時收起手機，到定點才拿出來驗證——把時間留給觀察與討論。",
     "・若班級無行動裝置：可全紙本進行，改由老師在教室電腦統一輸入答案。",
   ]) para(doc, s, { size: 10, gap: 6 });
 
   heading(doc, "評分建議", GOLD);
-  para(doc, "系統計分 100 分（八關各關卡分數以系統為準）＋ 現場觀察欄 20 分（每關 2.5 分，以完成度評分）＋ 終章排列 10 分。學生每開啟一階系統提示，該關 −2 分（每關最多兩階，未完成關卡的提示不扣分）。開放式觀察題沒有標準答案，重視觀察與記錄的過程。", { size: 10, gap: 8 });
+  para(doc, "系統計分 100 分（八關各 10 分、終章 10 分、全破加成 10 分）＋ 現場觀察欄 20 分（每關 2.5 分，以完成度評分）。學生每開啟一階系統提示，該關 −1 分（每關最多三階，未完成關卡的提示不扣分）。開放式觀察題沒有標準答案，重視觀察與記錄的過程。", { size: 10, gap: 8 });
 
   heading(doc, "安全事項", GREEN);
   for (const s of [
@@ -535,37 +576,98 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
     doc.y += 24;
 
     heading(doc, "解答");
-    const ans = m.correctAnswer as Record<string, string> | string[];
+    const keyPayload = m.puzzlePayload as unknown as {
+      columns?: EvidenceColumnItem[];
+      cards?: EvidenceCardItem[];
+      slots?: AcrosticSlotItem[];
+      lines?: AcrosticLineItem[];
+      leftItems?: GridLeftItem[];
+      rightItems?: GridRightItem[];
+      items?: TimelineItem[];
+      components?: EmblemComponentItem[];
+      meanings?: EmblemMeaningItem[];
+      nodes?: CycleNodeItem[];
+      records?: OfficeRecordItem[];
+      offices?: OfficeItem[];
+      checks?: CrosscheckItem[];
+    };
+    const ans = m.correctAnswer as unknown;
     switch (m.puzzleType) {
-      case "evidence-grid": {
-        const qLabels = ["q1", "q2", "q3", "q4"];
-        for (const q of qLabels) para(doc, `${q.toUpperCase()}：${(ans as Record<string, string>)[q]}`, { size: 10, gap: 4 });
+      case "evidence-classify": {
+        const a = ans as { placement: Record<string, string>; lock: string };
+        const columnLabel = new Map((keyPayload.columns ?? []).map((column) => [column.id, column.label]));
+        for (const card of [...(keyPayload.cards ?? [])].sort((x, y) => x.order - y.order)) {
+          para(doc, `證詞 ${card.order} → ${columnLabel.get(a.placement[card.id]) ?? a.placement[card.id]}`, { size: 9.5, gap: 3 });
+        }
+        para(doc, `檔案鎖校驗字：${a.lock}`, { size: 10, font: "handb", color: GOLD, gap: 4 });
         break;
       }
-      case "logic-choice":
-        for (const [k, v] of Object.entries(ans as Record<string, string>)) para(doc, `${k}：${v}`, { size: 10, gap: 4 });
-        break;
-      case "map-matching":
-        for (const [k, v] of Object.entries(ans as Record<string, string>)) para(doc, `${k} → ${v}`, { size: 10, gap: 4 });
-        break;
-      case "timeline-sort":
-        para(doc, `由早到晚：${(ans as unknown as string[]).join(" → ")}`, { size: 10, gap: 4 });
-        para(doc, "（h1 幼稚園 → h2 小學 → h3 遷址 → h4 中學 → h6 校徽 → h5 實驗高中 → h7 國中雙語 → h8 高中雙語）", { size: 8.5, color: MUTED, gap: 4 });
-        break;
-      case "eco-matching": {
-        const a = ans as unknown as { pairs: Record<string, string>; safety: string };
-        for (const [k, v] of Object.entries(a.pairs)) para(doc, `${k} → ${v}`, { size: 10, gap: 4 });
-        para(doc, `安全題：${a.safety}`, { size: 10, gap: 4, font: "handb" });
+      case "acrostic-select": {
+        const a = ans as Record<string, string>;
+        const lines = new Map((keyPayload.lines ?? []).map((line) => [line.id, line]));
+        let motto = "";
+        for (const slot of keyPayload.slots ?? []) {
+          const line = lines.get(a[slot.id]);
+          if (line) motto += line.lead;
+          para(doc, `${slot.label} → ${a[slot.id]}（${line ? `${line.lead}${line.text}` : ""}）`, { size: 9.5, gap: 3 });
+        }
+        para(doc, `四字密令：${motto}`, { size: 10, font: "handb", color: GOLD, gap: 4 });
         break;
       }
-      case "office-matching": {
-        const labels: Record<string, string> = { academic: "教務處", student: "學務處", general: "總務處", counseling: "輔導室" };
-        for (const [k, v] of Object.entries(ans as Record<string, string>)) para(doc, `${k} → ${labels[v] ?? v}`, { size: 10, gap: 4 });
+      case "logic-grid": {
+        const a = ans as Record<string, string>;
+        const right = new Map((keyPayload.rightItems ?? []).map((item) => [item.id, item.text]));
+        for (const left of keyPayload.leftItems ?? []) {
+          para(doc, `${left.label} → ${right.get(a[left.id]) ?? a[left.id]}`, { size: 9.5, gap: 3 });
+        }
         break;
       }
-      case "final-synthesis":
-        for (const [k, v] of Object.entries(ans as Record<string, string>)) para(doc, `${k}：${v}`, { size: 10, gap: 4 });
+      case "timeline-years": {
+        const a = ans as { order: string[]; years: Record<string, string> };
+        const labels = new Map((keyPayload.items ?? []).map((item) => [item.id, item.label]));
+        para(doc, "由早到晚：", { size: 10, font: "handb", color: GOLD, gap: 3 });
+        a.order.forEach((id, index) => {
+          para(doc, `${index + 1}. ${id}｜${labels.get(id) ?? ""}｜${a.years[id]}`, { size: 9.5, gap: 3, x: M + 6, width: CW - 12 });
+        });
         break;
+      }
+      case "emblem-layers": {
+        const a = ans as { pairs: Record<string, string>; code: string };
+        const components = new Map((keyPayload.components ?? []).map((component) => [component.id, component.label]));
+        const meanings = new Map((keyPayload.meanings ?? []).map((meaning) => [meaning.id, meaning.text]));
+        for (const [componentId, meaningId] of Object.entries(a.pairs)) {
+          para(doc, `${components.get(componentId) ?? componentId} → ${meanings.get(meaningId) ?? meaningId}`, { size: 9, gap: 3 });
+        }
+        para(doc, `第二層校驗詞：${a.code}`, { size: 10, font: "handb", color: GOLD, gap: 4 });
+        break;
+      }
+      case "cycle-flow": {
+        const a = ans as { order: string[]; answers: Record<string, unknown> };
+        const nodes = new Map((keyPayload.nodes ?? []).map((node) => [node.id, node.label]));
+        para(doc, `循環順序：${a.order.map((id) => nodes.get(id) ?? id).join(" → ")} → 接回第一步`, { size: 9.5, gap: 4 });
+        para(doc, "追問一：植物利用養分的環節中斷，概念循環無法依原路徑完成。", { size: 9.5, gap: 3 });
+        para(doc, "追問二：「綠的延伸」是設計理念，不是特定設備名稱。", { size: 9.5, gap: 3 });
+        para(doc, "追問三：不能；公開介紹提到小花園與魚菜共生，不等於所有植栽都接入同一系統。", { size: 9.5, gap: 4 });
+        break;
+      }
+      case "office-quota": {
+        const a = ans as Record<string, string>;
+        const offices = new Map((keyPayload.offices ?? []).map((office) => [office.id, office.label]));
+        for (const record of keyPayload.records ?? []) {
+          para(doc, `檔案 ${record.id}｜${record.main} → ${offices.get(a[record.id]) ?? a[record.id]}`, { size: 9.5, gap: 3 });
+        }
+        break;
+      }
+      case "final-crosscheck": {
+        const a = ans as Record<string, string>;
+        const labels = new Map((keyPayload.checks ?? []).map((check) => [check.id, check.label]));
+        para(doc, `${labels.get("founded") ?? "創辦年份"}：${a.founded}`, { size: 9.5, gap: 3 });
+        para(doc, `${labels.get("moved") ?? "遷址年份"}：${a.moved}`, { size: 9.5, gap: 3 });
+        para(doc, `${labels.get("motto") ?? "校訓"}：${a.motto}`, { size: 9.5, gap: 3 });
+        para(doc, `${labels.get("literacy") ?? "核心素養"}：${a.literacy}`, { size: 9.5, gap: 3 });
+        para(doc, `終章口令：${a.passphrase}`, { size: 10, font: "handb", color: GOLD, gap: 4 });
+        break;
+      }
     }
 
     heading(doc, "現場觀察欄參考答案", GREEN);
@@ -573,8 +675,9 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
     para(doc, `觀察任務：${OBSERVATIONS[m.id].task}`, { size: 8.5, color: MUTED, gap: 8 });
 
     heading(doc, "解題提示（可口頭提示學生）", GOLD);
-    para(doc, `提示一：${m.hint1}`, { size: 9.5, gap: 4 });
-    para(doc, `提示二：${m.hint2}`, { size: 9.5, gap: 8 });
+    para(doc, `提示一（觀察方向，−1 分）：${m.hint1}`, { size: 9.5, gap: 3 });
+    para(doc, `提示二（推理策略，−1 分）：${m.hint2}`, { size: 9.5, gap: 3 });
+    para(doc, `提示三（關鍵關係，−1 分）：${m.hint3}`, { size: 9.5, gap: 8 });
 
     heading(doc, "關卡重點");
     para(doc, m.explanation, { size: 9.5, gap: 3 });

@@ -1,11 +1,18 @@
 export type PuzzleType =
-  | "evidence-grid"
-  | "logic-choice"
-  | "map-matching"
-  | "timeline-sort"
-  | "eco-matching"
-  | "office-matching"
-  | "final-synthesis";
+  // 困難模式八關題型
+  | "evidence-classify" // M01 三分類證據審查
+  | "acrostic-select" // M02 語意選詩・藏頭密令
+  | "logic-grid" // M03 6×6 邏輯矩陣
+  | "timeline-years" // M04 時間排序＋年份換算
+  | "emblem-layers" // M05 雙層配對＋索引字密文
+  | "cycle-flow" // M06 因果循環排序＋概念追問
+  | "office-quota" // M07 受限配額分派
+  | "final-crosscheck"; // M08 跨關交叉校驗＋終章口令
+
+export type HintStage = 1 | 2 | 3;
+
+/** 每關最多三階提示，每階扣 1 分 */
+export const MAX_HINT_STAGE = 3;
 
 export interface PublicMission {
   id: number;
@@ -23,6 +30,7 @@ export interface PublicMission {
   puzzlePayload: Record<string, unknown>;
   hint1: string;
   hint2: string;
+  hint3: string;
   sourceTitle: string;
   sourceUrl: string;
   fragmentName: string;
