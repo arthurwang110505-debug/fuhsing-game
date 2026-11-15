@@ -403,10 +403,15 @@ export default function FuhsingChroniclesApp() {
     const source = SEED_MISSIONS.find((mission) => mission.id === activeMission.id);
     if (!source) return;
     const key = String(activeMission.id);
-    setSession((previous) => previous ? {
-      ...previous,
-      hintsUsed: { ...previous.hintsUsed, [key]: Math.max(previous.hintsUsed[key] ?? 0, stage) },
-    } : previous);
+    setSession((previous) => {
+      if (!previous) return previous;
+      const hintsUsed = { ...previous.hintsUsed, [key]: Math.max(previous.hintsUsed[key] ?? 0, stage) };
+      return {
+        ...previous,
+        hintsUsed,
+        score: computeTotalScore(previous.completedMissions, previous.finalSolved, hintsUsed),
+      };
+    });
     setRevealedHints((previous) => ({
       missionId: activeMission.id,
       hints: { ...(previous.missionId === activeMission.id ? previous.hints : {}), [stage]: stage === 1 ? source.hint1 : source.hint2 },
@@ -436,7 +441,7 @@ export default function FuhsingChroniclesApp() {
       completedMissions,
       fragmentsCollected,
       attemptsLog,
-      score: computeTotalScore(completedMissions, session.finalSolved),
+      score: computeTotalScore(completedMissions, session.finalSolved, session.hintsUsed),
       completedAt: completedMissions.length === 8 ? new Date().toISOString() : session.completedAt,
     };
     const detail = extractSolvedDetail(source);
@@ -466,7 +471,7 @@ export default function FuhsingChroniclesApp() {
         ...session,
         finalSolved: true,
         completedAt: session.completedAt ?? new Date().toISOString(),
-        score: computeTotalScore(session.completedMissions, true),
+        score: computeTotalScore(session.completedMissions, true, session.hintsUsed),
       };
       setSession(finished);
       setEndingStory(FINAL_PUZZLE_DATA.endingStory);

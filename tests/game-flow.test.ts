@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { SEED_MISSIONS, FINAL_PUZZLE_DATA } from "../src/lib/seed-data";
 import {
+  computeHintPenalty,
   computeTotalScore,
   computeUnlockedMissionIds,
   gradeFinalSeal,
@@ -54,4 +55,17 @@ test("mission eight and the finale follow the complete local progression", () =>
   assert.equal(gradeFinalSeal(FINAL_PUZZLE_DATA.correctOrder).isCorrect, true);
   assert.equal(gradeFinalSeal([...FINAL_PUZZLE_DATA.correctOrder].reverse()).isCorrect, false);
   assert.equal(computeTotalScore([1, 2, 3, 4, 5, 6, 7, 8], true), 100);
+});
+
+test("hint usage deducts points from completed missions only", () => {
+  // 每階提示 −2 分
+  assert.equal(computeTotalScore([1, 2], false, { "1": 1 }), 18);
+  assert.equal(computeTotalScore([1, 2], false, { "1": 2 }), 16);
+  // 未完成關卡的提示不扣分
+  assert.equal(computeTotalScore([1], false, { "2": 2 }), 10);
+  // 全破＋兩關各用兩階提示：100 − 8
+  assert.equal(computeTotalScore([1, 2, 3, 4, 5, 6, 7, 8], true, { "1": 2, "3": 2 }), 92);
+  // 分數不會低於 0
+  assert.equal(computeTotalScore([1], false, { "1": 2, "2": 2 }), 6);
+  assert.equal(computeHintPenalty([1, 2], { "1": 2, "3": 1 }), 4);
 });

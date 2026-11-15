@@ -316,7 +316,7 @@ function buildStudentBooklet(): PDFKit.PDFDocument {
   for (const r of rules) para(doc, r, { size: 10, gap: 6 });
   doc.y += 4;
   heading(doc, "評分方式", GOLD);
-  para(doc, "系統計分 100 分（八關）＋ 現場觀察欄 20 分（由老師抽查或小組互評）＋ 終章排列 10 分。觀察欄的重點是觀察過程，不比對標準答案。", { size: 10, gap: 6 });
+  para(doc, "系統計分 100 分（八關）＋ 現場觀察欄 20 分（由老師抽查或小組互評）＋ 終章排列 10 分。系統內每開啟一階提示，該關 −2 分（每關最多兩階）。觀察欄的重點是觀察過程，不比對標準答案。", { size: 10, gap: 6 });
 
   // 地圖
   doc.addPage();
@@ -516,7 +516,7 @@ function buildTeacherGuide(): PDFKit.PDFDocument {
   ]) para(doc, s, { size: 10, gap: 6 });
 
   heading(doc, "評分建議", GOLD);
-  para(doc, "系統計分 100 分（八關各關卡分數以系統為準）＋ 現場觀察欄 20 分（每關 2.5 分，以完成度評分）＋ 終章排列 10 分。開放式觀察題沒有標準答案，重視觀察與記錄的過程。", { size: 10, gap: 8 });
+  para(doc, "系統計分 100 分（八關各關卡分數以系統為準）＋ 現場觀察欄 20 分（每關 2.5 分，以完成度評分）＋ 終章排列 10 分。學生每開啟一階系統提示，該關 −2 分（每關最多兩階，未完成關卡的提示不扣分）。開放式觀察題沒有標準答案，重視觀察與記錄的過程。", { size: 10, gap: 8 });
 
   heading(doc, "安全事項", GREEN);
   for (const s of [
